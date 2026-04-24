@@ -24,10 +24,12 @@ This repository provides:
 - `src/validator.ts`: Validation rules implementation.
 - `src/cli.ts`: CLI entry for validating a JSON file.
 - `src/simulation.ts`: Simulation runner for fashion-model-photo metadata search scenarios.
+- `src/opensearch-mapping.ts`: Generates OpenSearch mapping from taxonomy types.
 - `examples/valid-taxonomy.json`: Valid sample with one warning (deprecated attribute usage).
 - `examples/invalid-taxonomy.json`: Intentionally broken sample that triggers multiple errors.
 - `examples/fashion-photos.json`: Sample photo metadata records used in simulation.
 - `docs/photo-design-review.md`: Photo-driven gap analysis and taxonomy improvement proposals.
+- `docs/runtime-considerations.md`: Runtime bundle/NoSQL/OpenSearch implementation guidance.
 
 ## Branch resume guide
 
@@ -65,6 +67,12 @@ Run simulation:
 
 ```bash
 npm run simulate
+```
+
+Generate OpenSearch mapping:
+
+```bash
+npm run mapping:os
 ```
 
 > This project uses Node's `--experimental-strip-types` to execute `.ts` files directly.

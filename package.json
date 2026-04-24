@@ -6,6 +6,7 @@
   "scripts": {
     "validate:valid": "node --experimental-strip-types src/cli.ts examples/valid-taxonomy.json",
     "validate:invalid": "node --experimental-strip-types src/cli.ts examples/invalid-taxonomy.json",
-    "simulate": "node --experimental-strip-types src/simulation.ts"
+    "simulate": "node --experimental-strip-types src/simulation.ts",
+    "mapping:os": "node --experimental-strip-types src/opensearch-mapping.ts examples/valid-taxonomy.json"
   }
 }
