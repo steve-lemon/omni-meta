@@ -16,6 +16,7 @@ This repository provides:
 - Shared vocabularies for enum attributes, including alias normalization.
 - Status lifecycle support (`active` | `deprecated`) across categories/attributes/terms.
 - Multi-category support (max 3 categories per photo) with flexible attribute merge strategy.
+- Optional entity-graph model for multi-entity photos (entities + typed relations), where each entity has up to 3 categories and category-governed attributes.
 
 ## Project structure
 
@@ -23,9 +24,37 @@ This repository provides:
 - `src/validator.ts`: Validation rules implementation.
 - `src/cli.ts`: CLI entry for validating a JSON file.
 - `src/simulation.ts`: Simulation runner for fashion-model-photo metadata search scenarios.
+- `src/build-bundle.ts`: Merges domain-managed standards into runtime `fashion.json`.
+- `src/bundle-manager-cli.ts`: Interactive CLI for bundle/image analysis-feedback-improvement loop.
+- `src/opensearch-mapping.ts`: Generates OpenSearch mapping from taxonomy types.
+- `src/opensearch-index-plan.ts`: Generates OpenSearch index template + reindex plan artifacts.
 - `examples/valid-taxonomy.json`: Valid sample with one warning (deprecated attribute usage).
 - `examples/invalid-taxonomy.json`: Intentionally broken sample that triggers multiple errors.
+- `examples/fashion.json`: Runtime bundle built from domain files.
 - `examples/fashion-photos.json`: Sample photo metadata records used in simulation.
+- `examples/domains/`: Domain-managed source files used to build `fashion.json`.
+- `docs/photo-design-review.md`: Photo-driven gap analysis and taxonomy improvement proposals.
+- `docs/runtime-considerations.md`: Runtime bundle/NoSQL/OpenSearch implementation guidance.
+- `docs/nosql-migration-playbook.md`: Versioned NoSQL migration strategy and safeguards.
+- `docs/bundle-cli-workflow.md`: CLI loop guide for bundle-based analysis/feedback updates.
+
+## Branch resume guide
+
+This branch currently centers on three linked capabilities:
+
+- **Validator + CLI baseline** for taxonomy integrity checks.
+- **Fashion-photo simulation** for realistic query behavior.
+- **Multi-category support** with configurable merge strategy (`union | intersection | priority`).
+
+Use this quick flow when resuming work:
+1. `npm run validate:valid` → verify non-blocking path (warnings allowed).
+2. `npm run validate:invalid` → verify blocking error path (expected exit code: `2`).
+3. `npm run simulate` → verify category/attribute normalization and search matching.
+
+Suggested change boundaries:
+- Taxonomy rule/schema changes: update `src/types.ts` + `src/validator.ts` together.
+- Query behavior/scenario changes: update `src/simulation.ts` + `examples/fashion-photos.json` together.
+- CLI/output contract changes: update `src/cli.ts` + README sections that document exit behavior.
 
 ## Run validation (no install required)
 
@@ -33,6 +62,12 @@ Validate valid sample:
 
 ```bash
 npm run validate:valid
+```
+
+Validate runtime bundle:
+
+```bash
+npm run validate:fashion
 ```
 
 Validate invalid sample:
@@ -46,6 +81,60 @@ Run simulation:
 ```bash
 npm run simulate
 ```
+
+Build runtime bundle:
+
+```bash
+npm run build:bundle
+```
+
+Generate OpenSearch mapping:
+
+```bash
+npm run mapping:os
+```
+
+Generate OpenSearch template + reindex plan:
+
+```bash
+npm run os:plan
+```
+
+Run interactive bundle management CLI:
+
+```bash
+npm run bundle:cli
+```
+
+Verbose logs:
+
+```bash
+npm run bundle:cli -- --verbose
+```
+
+OpenAI SDK image analysis:
+
+```bash
+# Option A) shell env
+export OPENAI_API_KEY=your_key
+export OPENAI_VISION_MODEL=gpt-4.1-mini
+npm run bundle:cli
+```
+
+```bash
+# Option B) .env 파일 사용 (CLI가 자동 로드)
+cp .env.example .env
+npm run bundle:cli
+```
+
+CLI workflow:
+1. Select bundle to manage.
+2. Select image to analyze.
+3. Auto-recommend metadata tags from bundle vocab/category hints.
+4. Collect feedback on incorrect/missing analysis.
+5. Build an improvement plan.
+6. Review/approve plan and execute updates (bundle/doc).
+7. Re-run analysis with updated bundle until feedback is closed.
 
 > This project uses Node's `--experimental-strip-types` to execute `.ts` files directly.
 
@@ -63,10 +152,11 @@ npm run simulate
 
 ## Simulation scenarios
 
-`npm run simulate` runs 3 scenarios:
+`npm run simulate` runs 4 scenarios:
 1. **기본 정밀 검색**: 단일 카테고리 + 모델/상의/스타일 조건.
 2. **멀티 카테고리 공통 속성 검색**: 복수 카테고리 지정 시 공통 속성(intersection) 중심 검색.
 3. **alias 정규화 검색**: category/attribute/value alias 입력을 canonical 값으로 정규화 후 검색.
+4. **엔터티/관계 기반 검색**: 한 사진 내 복수 엔터티와 관계(예: 모델-착용-드레스) 조건으로 검색.
 
 The simulation enforces category inheritance-aware bindings and applies the configured multi-category merge strategy.
 

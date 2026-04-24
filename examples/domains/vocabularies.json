@@ -1,0 +1,160 @@
+[
+  {
+    "id": "vocab_top_type",
+    "status": "active",
+    "terms": [
+      {
+        "value": "tshirt",
+        "status": "active",
+        "aliases": [
+          "tee",
+          "t-shirt",
+          "티셔츠"
+        ]
+      },
+      {
+        "value": "shirt",
+        "status": "active",
+        "aliases": [
+          "셔츠"
+        ]
+      },
+      {
+        "value": "knit",
+        "status": "active",
+        "aliases": [
+          "니트",
+          "sweater"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vocab_style",
+    "status": "active",
+    "terms": [
+      {
+        "value": "minimal",
+        "status": "active",
+        "aliases": [
+          "미니멀"
+        ]
+      },
+      {
+        "value": "street",
+        "status": "active",
+        "aliases": [
+          "스트릿"
+        ]
+      },
+      {
+        "value": "casual",
+        "status": "active",
+        "aliases": [
+          "캐주얼"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vocab_garment_type",
+    "status": "active",
+    "terms": [
+      {
+        "value": "shirt",
+        "status": "active",
+        "aliases": [
+          "셔츠"
+        ]
+      },
+      {
+        "value": "slip_dress",
+        "status": "active",
+        "aliases": [
+          "슬립드레스",
+          "dress"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vocab_footwear_type",
+    "status": "active",
+    "terms": [
+      {
+        "value": "loafer",
+        "status": "active",
+        "aliases": [
+          "로퍼"
+        ]
+      },
+      {
+        "value": "sneaker",
+        "status": "active",
+        "aliases": [
+          "스니커즈"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vocab_scene_type",
+    "status": "active",
+    "terms": [
+      {
+        "value": "cafe_exterior",
+        "status": "active",
+        "aliases": [
+          "카페외부"
+        ]
+      },
+      {
+        "value": "street",
+        "status": "active",
+        "aliases": [
+          "거리"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vocab_prop_type",
+    "status": "active",
+    "terms": [
+      {
+        "value": "chair",
+        "status": "active",
+        "aliases": [
+          "의자"
+        ]
+      },
+      {
+        "value": "backpack",
+        "status": "active",
+        "aliases": [
+          "백팩"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "vocab_pose_type",
+    "status": "active",
+    "terms": [
+      {
+        "value": "seated",
+        "status": "active",
+        "aliases": [
+          "앉음"
+        ]
+      },
+      {
+        "value": "standing",
+        "status": "active",
+        "aliases": [
+          "서있음"
+        ]
+      }
+    ]
+  }
+]

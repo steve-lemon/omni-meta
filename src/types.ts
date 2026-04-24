@@ -10,8 +10,30 @@ export interface TaxonomyFile {
   vocabularies: Vocabulary[];
   attributes: Attribute[];
   categories: Category[];
+  entity_model?: EntityModel;
   normalization: Normalization;
   rules: Rules;
+}
+
+export interface EntityModel {
+  entity_types: EntityTypeDefinition[];
+  relation_types: RelationTypeDefinition[];
+}
+
+export interface EntityTypeDefinition {
+  id: string;
+  label: string;
+  status: Status;
+  aliases?: string[];
+}
+
+export interface RelationTypeDefinition {
+  id: string;
+  label: string;
+  status: Status;
+  from_entity_type: string;
+  to_entity_type: string;
+  aliases?: string[];
 }
 
 export interface Vocabulary {

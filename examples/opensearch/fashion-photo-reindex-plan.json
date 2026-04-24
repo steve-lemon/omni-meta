@@ -1,0 +1,12 @@
+{
+  "alias": "fashion-photo",
+  "index_name": "fashion-photo-20260424",
+  "taxonomy_version": "2.0.0",
+  "steps": [
+    "PUT _index_template/fashion-photo-template",
+    "PUT fashion-photo-20260424",
+    "POST _aliases add write alias 'fashion-photo-write' -> fashion-photo-20260424",
+    "POST _reindex source=fashion-photo-read dest=fashion-photo-20260424",
+    "POST _aliases switch read alias 'fashion-photo-read' -> fashion-photo-20260424"
+  ]
+}

@@ -1,49 +1,240 @@
 [
   {
     "id": "ph_001",
-    "category_ids": ["shirt", "tops"],
+    "category_ids": [
+      "shirt",
+      "tops"
+    ],
     "metadata": {
       "model": "mina",
       "top_type": "shirt",
-      "style": ["minimal", "casual"],
+      "style": [
+        "minimal",
+        "casual"
+      ],
       "legacy_color": "white"
-    }
+    },
+    "entities": [
+      {
+        "id": "e_mina_001",
+        "type": "model",
+        "attributes": {
+          "model": "mina",
+          "style": [
+            "minimal",
+            "casual"
+          ]
+        },
+        "category_ids": [
+          "person"
+        ]
+      },
+      {
+        "id": "e_shirt_001",
+        "type": "dress",
+        "attributes": {
+          "garment_type": "slip_dress",
+          "style": [
+            "minimal",
+            "casual"
+          ]
+        },
+        "category_ids": [
+          "dress"
+        ]
+      },
+      {
+        "id": "e_shoes_001",
+        "type": "footwear",
+        "attributes": {
+          "footwear_type": "loafer",
+          "style": [
+            "minimal",
+            "casual"
+          ]
+        },
+        "category_ids": [
+          "footwear"
+        ]
+      }
+    ],
+    "relations": [
+      {
+        "type": "wears",
+        "from_entity_id": "e_mina_001",
+        "to_entity_id": "e_shirt_001"
+      },
+      {
+        "type": "wears_footwear",
+        "from_entity_id": "e_mina_001",
+        "to_entity_id": "e_shoes_001"
+      }
+    ]
   },
   {
     "id": "ph_002",
-    "category_ids": ["shirt", "tops", "fashion"],
+    "category_ids": [
+      "shirt",
+      "tops",
+      "fashion"
+    ],
     "metadata": {
       "model": "mina",
       "top_type": "tshirt",
-      "style": ["street"],
+      "style": [
+        "street"
+      ],
       "legacy_color": "black"
     }
   },
   {
     "id": "ph_003",
-    "category_ids": ["shirt"],
+    "category_ids": [
+      "shirt"
+    ],
     "metadata": {
       "model": "jiwon",
       "top_type": "shirt",
-      "style": ["minimal"],
+      "style": [
+        "minimal"
+      ],
       "legacy_color": "beige"
     }
   },
   {
     "id": "ph_004",
-    "category_ids": ["tops", "fashion"],
+    "category_ids": [
+      "tops",
+      "fashion"
+    ],
     "metadata": {
       "model": "mina",
       "top_type": "knit",
-      "style": ["casual"]
+      "style": [
+        "casual"
+      ]
     }
   },
   {
     "id": "ph_005",
-    "category_ids": ["fashion"],
+    "category_ids": [
+      "fashion"
+    ],
     "metadata": {
       "model": "sohee",
-      "style": ["minimal"]
+      "style": [
+        "minimal"
+      ]
     }
+  },
+  {
+    "id": "ph_006",
+    "category_ids": [
+      "fashion"
+    ],
+    "metadata": {
+      "model": "haeun",
+      "style": [
+        "minimal",
+        "casual"
+      ]
+    },
+    "entities": [
+      {
+        "id": "e_model_006",
+        "type": "model",
+        "attributes": {
+          "model": "haeun",
+          "style": [
+            "minimal",
+            "casual"
+          ],
+          "pose_type": "seated"
+        },
+        "category_ids": [
+          "person"
+        ]
+      },
+      {
+        "id": "e_dress_006",
+        "type": "dress",
+        "attributes": {
+          "garment_type": "slip_dress",
+          "style": [
+            "minimal",
+            "casual"
+          ]
+        },
+        "category_ids": [
+          "dress"
+        ]
+      },
+      {
+        "id": "e_footwear_006",
+        "type": "footwear",
+        "attributes": {
+          "footwear_type": "loafer",
+          "style": [
+            "minimal",
+            "casual"
+          ]
+        },
+        "category_ids": [
+          "footwear"
+        ]
+      },
+      {
+        "id": "e_place_006",
+        "type": "place",
+        "attributes": {
+          "scene_type": "cafe_exterior"
+        },
+        "category_ids": [
+          "place"
+        ]
+      },
+      {
+        "id": "e_chair_006",
+        "type": "prop",
+        "attributes": {
+          "prop_type": "chair"
+        },
+        "category_ids": [
+          "prop"
+        ]
+      },
+      {
+        "id": "e_bag_006",
+        "type": "prop",
+        "attributes": {
+          "prop_type": "backpack"
+        },
+        "category_ids": [
+          "prop"
+        ]
+      }
+    ],
+    "relations": [
+      {
+        "type": "wears",
+        "from_entity_id": "e_model_006",
+        "to_entity_id": "e_dress_006"
+      },
+      {
+        "type": "wears_footwear",
+        "from_entity_id": "e_model_006",
+        "to_entity_id": "e_footwear_006"
+      },
+      {
+        "type": "sits_on",
+        "from_entity_id": "e_model_006",
+        "to_entity_id": "e_chair_006"
+      },
+      {
+        "type": "located_at",
+        "from_entity_id": "e_model_006",
+        "to_entity_id": "e_place_006"
+      }
+    ]
   }
 ]

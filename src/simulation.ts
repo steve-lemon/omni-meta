@@ -7,11 +7,40 @@ type PhotoRecord = {
   id: string;
   category_ids: string[];
   metadata: Record<string, string | string[]>;
+  entities?: PhotoEntity[];
+  relations?: PhotoRelation[];
 };
 
 type QueryInput = {
   categories?: string[];
   filters: Record<string, string | string[]>;
+  entity_filters?: EntityFilter[];
+  relation_filters?: RelationFilter[];
+};
+
+type PhotoEntity = {
+  id: string;
+  type: string;
+  category_ids: string[];
+  attributes: Record<string, string | string[]>;
+};
+
+type PhotoRelation = {
+  type: string;
+  from_entity_id: string;
+  to_entity_id: string;
+};
+
+type EntityFilter = {
+  type?: string;
+  categories?: string[];
+  attributes?: Record<string, string | string[]>;
+};
+
+type RelationFilter = {
+  type: string;
+  from_type?: string;
+  to_type?: string;
 };
 
 type EffectiveBinding = {
@@ -196,6 +225,16 @@ function normalizeQuery(query: QueryInput, taxonomy: TaxonomyFile): QueryInput {
     }
   }
 
+  if (query.entity_filters?.length) {
+    out.entity_filters = query.entity_filters.map((filter) => ({
+      ...filter,
+      categories: filter.categories?.map((cat) => canonicalizeCategory(cat, taxonomy)?.id ?? cat)
+    }));
+  }
+  if (query.relation_filters?.length) {
+    out.relation_filters = query.relation_filters;
+  }
+
   return out;
 }
 
@@ -235,6 +274,62 @@ function matchesPhoto(photo: PhotoRecord, query: QueryInput, taxonomy: TaxonomyF
     if (!includesAll(actualArray, wantedArray)) return false;
   }
 
+  if (query.entity_filters?.length && !matchesEntityFilters(photo, query.entity_filters)) {
+    return false;
+  }
+
+  if (query.relation_filters?.length && !matchesRelationFilters(photo, query.relation_filters)) {
+    return false;
+  }
+
+  return true;
+}
+
+function matchesEntityFilters(photo: PhotoRecord, entityFilters: EntityFilter[]): boolean {
+  const entities = photo.entities ?? [];
+  for (const filter of entityFilters) {
+    const hit = entities.some((entity) => matchesSingleEntityFilter(entity, filter));
+    if (!hit) return false;
+  }
+  return true;
+}
+
+function matchesSingleEntityFilter(entity: PhotoEntity, filter: EntityFilter): boolean {
+  if (filter.type && normalize(filter.type) !== normalize(entity.type)) return false;
+  if (filter.categories?.length) {
+    for (const categoryId of filter.categories) {
+      if (!entity.category_ids.includes(categoryId)) return false;
+    }
+  }
+  if (!filter.attributes) return true;
+
+  for (const [key, wanted] of Object.entries(filter.attributes)) {
+    const actual = entity.attributes[key];
+    if (actual === undefined) return false;
+    const actualArray = Array.isArray(actual) ? actual : [actual];
+    const wantedArray = Array.isArray(wanted) ? wanted : [wanted];
+    if (!includesAll(actualArray, wantedArray)) return false;
+  }
+  return true;
+}
+
+function matchesRelationFilters(photo: PhotoRecord, relationFilters: RelationFilter[]): boolean {
+  const relations = photo.relations ?? [];
+  const entityById = new Map((photo.entities ?? []).map((e) => [e.id, e]));
+
+  for (const filter of relationFilters) {
+    const hit = relations.some((relation) => {
+      if (normalize(relation.type) !== normalize(filter.type)) return false;
+      const from = entityById.get(relation.from_entity_id);
+      const to = entityById.get(relation.to_entity_id);
+      if (!from || !to) return false;
+      if (filter.from_type && normalize(from.type) !== normalize(filter.from_type)) return false;
+      if (filter.to_type && normalize(to.type) !== normalize(filter.to_type)) return false;
+      return true;
+    });
+    if (!hit) return false;
+  }
+
   return true;
 }
 
@@ -242,15 +337,73 @@ function normalize(value: string): string {
   return value.trim().toLowerCase().normalize("NFC");
 }
 
+function effectiveBindingMapForEntity(entity: PhotoEntity, taxonomy: TaxonomyFile): Map<string, EffectiveBinding> {
+  const maxAllowed = 3;
+  if (entity.category_ids.length === 0) {
+    throw new Error(`Entity '${entity.id}' must have at least one category.`);
+  }
+  if (entity.category_ids.length > maxAllowed) {
+    throw new Error(`Entity '${entity.id}' has ${entity.category_ids.length} categories (max ${maxAllowed}).`);
+  }
+
+  const categoryMaps = entity.category_ids.map((categoryId) => bindingMapForCategory(categoryId, taxonomy));
+  return mergeBindingMaps(categoryMaps, taxonomy.rules.multi_category.attribute_merge_strategy);
+}
+
+function validateEntityAttributes(photo: PhotoRecord, taxonomy: TaxonomyFile): void {
+  const attributeByKey = new Map(taxonomy.attributes.map((a) => [a.key, a]));
+  const vocabularyById = new Map(taxonomy.vocabularies.map((v) => [v.id, v]));
+
+  for (const entity of photo.entities ?? []) {
+    const bindingMap = effectiveBindingMapForEntity(entity, taxonomy);
+    for (const [key, rawValue] of Object.entries(entity.attributes)) {
+      const binding = bindingMap.get(key);
+      if (!binding) {
+        throw new Error(`Photo '${photo.id}' entity '${entity.id}' uses '${key}' not allowed by entity categories.`);
+      }
+
+      const attribute = attributeByKey.get(key);
+      if (!attribute) continue;
+
+      const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+      if (attribute.type === "enum" && attribute.vocab_ref) {
+        const vocab = vocabularyById.get(attribute.vocab_ref);
+        if (!vocab) continue;
+        const vocabTerms = new Set(vocab.terms.map((term) => normalize(term.value)));
+
+        for (const val of values) {
+          const normalized = normalize(val);
+          if (!vocabTerms.has(normalized)) {
+            throw new Error(
+              `Photo '${photo.id}' entity '${entity.id}' has enum value '${val}' not in vocabulary '${vocab.id}'.`
+            );
+          }
+          if (binding.allowedTerms && binding.allowedTerms.size > 0 && !binding.allowedTerms.has(normalized)) {
+            throw new Error(
+              `Photo '${photo.id}' entity '${entity.id}' value '${val}' is outside allowed_terms for '${key}'.`
+            );
+          }
+        }
+      }
+    }
+  }
+}
+
 function main() {
-  const taxonomy = loadJson<TaxonomyFile>("examples/valid-taxonomy.json");
-  const photos = loadJson<PhotoRecord[]>("examples/fashion-photos.json");
+  const taxonomyPath = process.argv[2] ?? "examples/fashion.json";
+  const photosPath = process.argv[3] ?? "examples/fashion-photos.json";
+  const taxonomy = loadJson<TaxonomyFile>(taxonomyPath);
+  const photos = loadJson<PhotoRecord[]>(photosPath);
 
   const issues = validateTaxonomy(taxonomy);
   const errors = issues.filter((i) => i.level === "ERROR");
   if (errors.length > 0) {
     console.error("Taxonomy has blocking errors; simulation aborted.");
     process.exit(2);
+  }
+
+  for (const photo of photos) {
+    validateEntityAttributes(photo, taxonomy);
   }
 
   const scenarios: Array<{ name: string; query: QueryInput; note: string }> = [
@@ -277,6 +430,19 @@ function main() {
         filters: { person: "mina", upper_type: "shirt", 스타일: ["미니멀"] }
       },
       note: "category/attribute/value alias 정규화"
+    },
+    {
+      name: "S4 - 엔터티/관계 기반 검색",
+      query: {
+        categories: ["fashion"],
+        filters: { style: ["minimal"] },
+        entity_filters: [
+          { type: "dress", categories: ["fashion/dress"], attributes: { garment_type: "slip_dress" } },
+          { type: "footwear", categories: ["fashion/footwear"], attributes: { footwear_type: "loafer" } }
+        ],
+        relation_filters: [{ type: "wears", from_type: "model", to_type: "dress" }]
+      },
+      note: "한 사진 내 복수 엔터티 + 관계(모델이 드레스를 착용) 검색"
     }
   ];
 

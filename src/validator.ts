@@ -1,4 +1,11 @@
-import type { TaxonomyFile, ValidationIssue, Attribute, Category, Vocabulary, Status } from "./types.ts";
+import type {
+  TaxonomyFile,
+  ValidationIssue,
+  Attribute,
+  Category,
+  Vocabulary,
+  Status
+} from "./types.ts";
 
 const STATUS_VALUES: Status[] = ["active", "deprecated"];
 const SEMVER_REGEX = /^\d+\.\d+\.\d+$/;
@@ -25,8 +32,54 @@ export function validateTaxonomy(doc: TaxonomyFile): ValidationIssue[] {
   validateAttributes(doc.attributes, vocabularyById, issues);
   validateVocabularies(doc.vocabularies, issues);
   validateBindings(doc.categories, attributesByKey, vocabularyById, issues);
+  validateEntityModel(doc, issues);
 
   return issues;
+}
+
+function validateEntityModel(doc: TaxonomyFile, issues: ValidationIssue[]) {
+  const entityModel = doc.entity_model;
+  if (!entityModel) return;
+
+  validateUnique(
+    entityModel.entity_types.map((e) => e.id),
+    "E_TYPE_DUPLICATE",
+    "Duplicate entity type id",
+    "entity_model.entity_types[].id",
+    issues
+  );
+  validateUnique(
+    entityModel.relation_types.map((r) => r.id),
+    "E_RELATION_DUPLICATE",
+    "Duplicate relation type id",
+    "entity_model.relation_types[].id",
+    issues
+  );
+
+  const entityTypeById = new Map(entityModel.entity_types.map((e) => [e.id, e]));
+  for (const [i, entityType] of entityModel.entity_types.entries()) {
+    ensureStatus(entityType.status, `entity_model.entity_types[${i}].status`, issues);
+  }
+
+  for (const [i, relationType] of entityModel.relation_types.entries()) {
+    ensureStatus(relationType.status, `entity_model.relation_types[${i}].status`, issues);
+    if (!entityTypeById.has(relationType.from_entity_type)) {
+      issues.push({
+        level: "ERROR",
+        code: "E_RELATION_FROM_UNKNOWN",
+        message: `Relation '${relationType.id}' references unknown from_entity_type '${relationType.from_entity_type}'`,
+        path: `entity_model.relation_types[${i}].from_entity_type`
+      });
+    }
+    if (!entityTypeById.has(relationType.to_entity_type)) {
+      issues.push({
+        level: "ERROR",
+        code: "E_RELATION_TO_UNKNOWN",
+        message: `Relation '${relationType.id}' references unknown to_entity_type '${relationType.to_entity_type}'`,
+        path: `entity_model.relation_types[${i}].to_entity_type`
+      });
+    }
+  }
 }
 
 function validateRuleConfig(doc: TaxonomyFile, issues: ValidationIssue[]) {

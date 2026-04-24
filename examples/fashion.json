@@ -4,6 +4,36 @@
     "name": "image-metadata-taxonomy",
     "updated_at": "2026-04-24T00:00:00Z"
   },
+  "normalization": {
+    "case_insensitive": true,
+    "trim_whitespace": true,
+    "unicode_normalization": "NFC",
+    "alias_resolution_order": [
+      "attribute_alias",
+      "category_alias",
+      "vocabulary_term_alias"
+    ],
+    "deprecated_policy": {
+      "accept_input": true,
+      "store_as_canonical_if_possible": true,
+      "warn_on_use": true
+    }
+  },
+  "rules": {
+    "id_unique": true,
+    "attribute_key_unique": true,
+    "search_path_unique": true,
+    "child_override_parent": true,
+    "status_values": [
+      "active",
+      "deprecated"
+    ],
+    "multi_category": {
+      "enabled": true,
+      "max_categories_per_photo": 3,
+      "attribute_merge_strategy": "intersection"
+    }
+  },
   "vocabularies": [
     {
       "id": "vocab_top_type",
@@ -462,36 +492,6 @@
       ]
     }
   ],
-  "normalization": {
-    "case_insensitive": true,
-    "trim_whitespace": true,
-    "unicode_normalization": "NFC",
-    "alias_resolution_order": [
-      "attribute_alias",
-      "category_alias",
-      "vocabulary_term_alias"
-    ],
-    "deprecated_policy": {
-      "accept_input": true,
-      "store_as_canonical_if_possible": true,
-      "warn_on_use": true
-    }
-  },
-  "rules": {
-    "id_unique": true,
-    "attribute_key_unique": true,
-    "search_path_unique": true,
-    "child_override_parent": true,
-    "status_values": [
-      "active",
-      "deprecated"
-    ],
-    "multi_category": {
-      "enabled": true,
-      "max_categories_per_photo": 3,
-      "attribute_merge_strategy": "intersection"
-    }
-  },
   "entity_model": {
     "entity_types": [
       {
