@@ -2,6 +2,7 @@
   "schema_version": "2.0.0",
   "meta": {
     "name": "image-metadata-taxonomy",
+    "description": "Fashion-focused reference taxonomy for photo metadata annotation and retrieval.",
     "updated_at": "2026-04-24T00:00:00Z"
   },
   "normalization": {
@@ -89,6 +90,29 @@
           "aliases": [
             "캐주얼"
           ]
+        }
+      ]
+    },
+    {
+      "id": "vocab_color_palette",
+      "type": "color",
+      "status": "active",
+      "terms": [
+        {
+          "value": "ivory",
+          "status": "active",
+          "aliases": [
+            "cream"
+          ],
+          "color_code": "#FFFFF0"
+        },
+        {
+          "value": "charcoal",
+          "status": "active",
+          "aliases": [
+            "dark_gray"
+          ],
+          "color_code": "#36454F"
         }
       ]
     },
@@ -231,6 +255,26 @@
       ]
     },
     {
+      "key": "dominant_color",
+      "label": "Dominant Color",
+      "type": "color",
+      "cardinality": "single",
+      "status": "active",
+      "priority": 10,
+      "icon": "palette",
+      "vocab_ref": "vocab_color_palette",
+      "hint": "Choose the most visually dominant garment or scene color."
+    },
+    {
+      "key": "captured_at",
+      "label": "Captured At",
+      "type": "date",
+      "cardinality": "single",
+      "status": "active",
+      "icon": "calendar",
+      "hint": "Use ISO 8601 when the original capture timestamp is known."
+    },
+    {
       "key": "legacy_color",
       "label": "Legacy Color",
       "type": "string",
@@ -310,6 +354,16 @@
       "attribute_bindings": [
         {
           "key": "model",
+          "required": false,
+          "status": "active"
+        },
+        {
+          "key": "captured_at",
+          "required": false,
+          "status": "active"
+        },
+        {
+          "key": "dominant_color",
           "required": false,
           "status": "active"
         },

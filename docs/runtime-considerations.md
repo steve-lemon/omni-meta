@@ -28,13 +28,13 @@ CI should merge domain files into `fashion.json` and run validation before publi
 
 ## 3) NoSQL key storage for per-photo metadata
 
-Store each photo as a single document keyed by `photo_id`.
+Store each photo as a single document keyed by `photo_id`.  
 
 Suggested document shape:
 
 - `photo_id` (PK)
 - `category_ids` (photo-level categories)
-- `metadata` (typed scalar/array fields)
+- `metadata` (typed scalar/array fields, including `date` and canonical color tokens where applicable)
 - `entities[]` (nested entity nodes with `category_ids` and typed attributes)
 - `relations[]` (typed edges)
 - `taxonomy_version` (for migration/reindex)
@@ -46,7 +46,8 @@ Key point: keep values in native types (string/number/boolean/array), not serial
 To keep search reliable:
 
 - Use strict mappings for known top-level fields.
-- Keep `metadata.<attr>` mapped by taxonomy type (`keyword`, `double`, `boolean`).
+- Keep `metadata.<attr>` mapped by taxonomy type (`keyword`, `double`, `boolean`, `date`).
+- If `Attribute.type === "color"`, index the canonical color token and keep UI swatches from `VocabularyTerm.color_code` in the taxonomy bundle rather than duplicating them into every photo document.
 - Use `nested` for `entities` and `relations` to preserve relation-local query semantics.
 - Reindex when taxonomy type changes.
 

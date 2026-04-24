@@ -4,7 +4,7 @@ TypeScript-based taxonomy validator for an image metadata microservice concept.
 
 This repository provides:
 
-- A **single-file JSON taxonomy model** (`schema_version`, categories, attributes, vocabularies).
+- A **single-file JSON taxonomy model** (`schema_version`, `meta`, `normalization`, `rules`, categories, attributes, vocabularies, optional entity model).
 - A **validation engine** for structural integrity and governance rules.
 - **Runnable examples** (valid/invalid) to verify behavior quickly.
 - A **fashion model photo simulation** to test whether the taxonomy can express and search important metadata dimensions, including multi-category assignment.
@@ -13,8 +13,8 @@ This repository provides:
 
 - Category tree with `id` + `parent_id` for internal references.
 - Search-oriented path field `search_path` (separated from internal id linkage).
-- Attribute dictionary with `cardinality` (`single` | `multi`) and lifecycle `status`.
-- Shared vocabularies for enum attributes, including alias normalization.
+- Attribute dictionary with `cardinality` (`single` | `multi`), lifecycle `status`, and optional UI hints like `priority`, `icon`, `hint`.
+- Shared vocabularies for enum/color attributes, including alias normalization and optional color swatches.
 - Status lifecycle support (`active` | `deprecated`) across categories/attributes/terms.
 - Multi-category support (max 3 categories per photo) with flexible attribute merge strategy.
 - Optional entity-graph model for multi-entity photos (entities + typed relations), where each entity has up to 3 categories and category-governed attributes.
@@ -27,7 +27,7 @@ This repository provides:
 - `src/simulation.ts`: Simulation runner for fashion-model-photo metadata search scenarios.
 - `src/build-bundle.ts`: Merges domain-managed standards into runtime `fashion.json`.
 - `src/bundle-manager-cli.ts`: Interactive CLI for bundle/image analysis-feedback-improvement loop.
-- `src/opensearch-mapping.ts`: Generates OpenSearch mapping from taxonomy types.
+- `src/opensearch-mapping.ts`: Generates OpenSearch mapping from taxonomy types, including `date`.
 - `src/opensearch-index-plan.ts`: Generates OpenSearch index template + reindex plan artifacts.
 - `examples/valid-taxonomy.json`: Valid sample with one warning (deprecated attribute usage).
 - `examples/invalid-taxonomy.json`: Intentionally broken sample that triggers multiple errors.
@@ -195,19 +195,24 @@ The simulation enforces category inheritance-aware bindings and applies the conf
 ### Attributes
 
 - Enum attributes must define `vocab_ref` and that vocabulary must exist.
-- Non-enum attributes must not define `vocab_ref`.
+- Color attributes must define `vocab_ref` and reference a color vocabulary.
+- Enum attributes must not reference a color vocabulary.
+- Attribute types other than `enum` / `color` must not define `vocab_ref`.
+- Optional `priority` must be a non-negative integer.
 
 ### Vocabularies
 
 - Term values must be unique inside the same vocabulary.
 - Alias must not collide with canonical term names.
 - Alias cannot map to multiple canonical terms.
+- Color vocabularies must define valid hex `color_code` values for every term.
+- Non-color vocabularies must not define `color_code`.
 
 ### Category attribute bindings
 
 - Binding key must reference an existing attribute.
 - Warning when binding references deprecated attributes.
-- `override.allowed_terms` is only valid for enum attributes with vocabularies.
+- `override.allowed_terms` is only valid for enum/color attributes with vocabularies.
 - `override.allowed_terms` must be a subset of the referenced vocabulary terms.
 
 ### Entity / relation model

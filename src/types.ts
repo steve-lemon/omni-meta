@@ -1,10 +1,12 @@
 export type Status = "active" | "deprecated";
 export type AttributeMergeStrategy = "union" | "intersection" | "priority";
+export type ValidationLevel = "ERROR" | "WARNING" | "INFO";
 
 export interface TaxonomyFile {
   schema_version: string;
   meta: {
     name: string;
+    description?: string;
     updated_at: string;
   };
   vocabularies: Vocabulary[];
@@ -38,6 +40,7 @@ export interface RelationTypeDefinition {
 
 export interface Vocabulary {
   id: string;
+  type?: "string" | "color";
   status: Status;
   terms: VocabularyTerm[];
 }
@@ -46,16 +49,20 @@ export interface VocabularyTerm {
   value: string;
   status: Status;
   aliases?: string[];
+  color_code?: string;
 }
 
 export interface Attribute {
   key: string;
   label: string;
-  type: "string" | "number" | "boolean" | "enum";
+  type: "string" | "number" | "boolean" | "enum" | "color" | "date";
   cardinality: "single" | "multi";
   status: Status;
+  priority?: number;
+  icon?: string;
   aliases?: string[];
   vocab_ref?: string;
+  hint?: string;
 }
 
 export interface AttributeBinding {
@@ -82,7 +89,9 @@ export interface Normalization {
   case_insensitive: boolean;
   trim_whitespace: boolean;
   unicode_normalization: "NFC" | "NFD" | "NFKC" | "NFKD";
-  alias_resolution_order: Array<"attribute_alias" | "category_alias" | "vocabulary_term_alias">;
+  alias_resolution_order: Array<
+    "attribute_alias" | "category_alias" | "vocabulary_term_alias"
+  >;
   deprecated_policy: {
     accept_input: boolean;
     store_as_canonical_if_possible: boolean;
@@ -102,8 +111,6 @@ export interface Rules {
     attribute_merge_strategy: AttributeMergeStrategy;
   };
 }
-
-export type ValidationLevel = "ERROR" | "WARNING" | "INFO";
 
 export interface ValidationIssue {
   level: ValidationLevel;

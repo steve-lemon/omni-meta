@@ -71,7 +71,7 @@ function canonicalizeAttributeKey(inputKey: string, taxonomy: TaxonomyFile): Att
 }
 
 function canonicalizeEnumValue(attribute: Attribute, rawValue: string, taxonomy: TaxonomyFile): string {
-  if (attribute.type !== "enum" || !attribute.vocab_ref) return rawValue;
+  if ((attribute.type !== "enum" && attribute.type !== "color") || !attribute.vocab_ref) return rawValue;
   const vocab = taxonomy.vocabularies.find((v) => v.id === attribute.vocab_ref);
   if (!vocab) return rawValue;
 
@@ -366,7 +366,7 @@ function validateEntityAttributes(photo: PhotoRecord, taxonomy: TaxonomyFile): v
       if (!attribute) continue;
 
       const values = Array.isArray(rawValue) ? rawValue : [rawValue];
-      if (attribute.type === "enum" && attribute.vocab_ref) {
+      if ((attribute.type === "enum" || attribute.type === "color") && attribute.vocab_ref) {
         const vocab = vocabularyById.get(attribute.vocab_ref);
         if (!vocab) continue;
         const vocabTerms = new Set(vocab.terms.map((term) => normalize(term.value)));

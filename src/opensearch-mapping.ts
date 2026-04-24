@@ -9,6 +9,7 @@ function loadJson<T>(path: string): T {
 function scalarType(attr: Attribute): Record<string, unknown> {
   if (attr.type === "number") return { type: "double" };
   if (attr.type === "boolean") return { type: "boolean" };
+  if (attr.type === "date") return { type: "date" };
   // enum/string are keyword-first for exact filtering/aggregation in OpenSearch.
   return { type: "keyword", ignore_above: 512 };
 }

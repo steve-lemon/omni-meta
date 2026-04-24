@@ -16,6 +16,16 @@
         "status": "active"
       },
       {
+        "key": "captured_at",
+        "required": false,
+        "status": "active"
+      },
+      {
+        "key": "dominant_color",
+        "required": false,
+        "status": "active"
+      },
+      {
         "key": "style",
         "required": false,
         "status": "active"

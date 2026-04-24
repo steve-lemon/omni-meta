@@ -46,6 +46,19 @@
                 "cardinality": "multi"
               }
             },
+            "dominant_color": {
+              "type": "keyword",
+              "ignore_above": 512,
+              "meta": {
+                "cardinality": "single"
+              }
+            },
+            "captured_at": {
+              "type": "date",
+              "meta": {
+                "cardinality": "single"
+              }
+            },
             "garment_type": {
               "type": "keyword",
               "ignore_above": 512,

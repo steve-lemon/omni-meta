@@ -10,6 +10,7 @@ import type {
 const STATUS_VALUES: Status[] = ["active", "deprecated"];
 const SEMVER_REGEX = /^\d+\.\d+\.\d+$/;
 const MERGE_STRATEGIES = ["union", "intersection", "priority"] as const;
+const COLOR_CODE_REGEX = /^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/;
 
 export function validateTaxonomy(doc: TaxonomyFile): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
@@ -255,12 +256,21 @@ function validateSearchPaths(categories: Category[], issues: ValidationIssue[]) 
 
 function validateAttributes(attributes: Attribute[], vocabularyById: Map<string, Vocabulary>, issues: ValidationIssue[]) {
   for (const [i, attribute] of attributes.entries()) {
-    if (attribute.type === "enum") {
+    if (attribute.priority !== undefined && (!Number.isInteger(attribute.priority) || attribute.priority < 0)) {
+      issues.push({
+        level: "ERROR",
+        code: "A_PRIORITY_INVALID",
+        message: `Attribute '${attribute.key}' priority must be a non-negative integer`,
+        path: `attributes[${i}].priority`
+      });
+    }
+
+    if (attribute.type === "enum" || attribute.type === "color") {
       if (!attribute.vocab_ref) {
         issues.push({
           level: "ERROR",
-          code: "A_ENUM_NO_VOCAB",
-          message: `Enum attribute '${attribute.key}' must define vocab_ref`,
+          code: attribute.type === "color" ? "A_COLOR_NO_VOCAB" : "A_ENUM_NO_VOCAB",
+          message: `${attribute.type === "color" ? "Color" : "Enum"} attribute '${attribute.key}' must define vocab_ref`,
           path: `attributes[${i}].vocab_ref`
         });
       } else if (!vocabularyById.has(attribute.vocab_ref)) {
@@ -270,12 +280,30 @@ function validateAttributes(attributes: Attribute[], vocabularyById: Map<string,
           message: `Attribute '${attribute.key}' references missing vocabulary '${attribute.vocab_ref}'`,
           path: `attributes[${i}].vocab_ref`
         });
+      } else {
+        const vocab = vocabularyById.get(attribute.vocab_ref);
+        if (attribute.type === "color" && vocab?.type !== "color") {
+          issues.push({
+            level: "ERROR",
+            code: "A_COLOR_VOCAB_TYPE",
+            message: `Color attribute '${attribute.key}' must reference a color vocabulary`,
+            path: `attributes[${i}].vocab_ref`
+          });
+        }
+        if (attribute.type === "enum" && vocab?.type === "color") {
+          issues.push({
+            level: "ERROR",
+            code: "A_ENUM_COLOR_VOCAB",
+            message: `Enum attribute '${attribute.key}' must not reference a color vocabulary`,
+            path: `attributes[${i}].vocab_ref`
+          });
+        }
       }
     } else if (attribute.vocab_ref) {
       issues.push({
         level: "ERROR",
         code: "A_NON_ENUM_HAS_VOCAB",
-        message: `Non-enum attribute '${attribute.key}' must not define vocab_ref`,
+        message: `Attribute '${attribute.key}' of type '${attribute.type}' must not define vocab_ref`,
         path: `attributes[${i}].vocab_ref`
       });
     }
@@ -298,6 +326,31 @@ function validateVocabularies(vocabularies: Vocabulary[], issues: ValidationIssu
         });
       }
       termSet.add(termKey);
+
+      if (vocab.type === "color") {
+        if (!term.color_code) {
+          issues.push({
+            level: "ERROR",
+            code: "V_COLOR_CODE_MISSING",
+            message: `Color vocabulary '${vocab.id}' term '${term.value}' must define color_code`,
+            path: `vocabularies[${vocabIdx}].terms[${termIdx}].color_code`
+          });
+        } else if (!COLOR_CODE_REGEX.test(term.color_code)) {
+          issues.push({
+            level: "ERROR",
+            code: "V_COLOR_CODE_INVALID",
+            message: `Color vocabulary '${vocab.id}' term '${term.value}' has invalid color_code '${term.color_code}'`,
+            path: `vocabularies[${vocabIdx}].terms[${termIdx}].color_code`
+          });
+        }
+      } else if (term.color_code) {
+        issues.push({
+          level: "ERROR",
+          code: "V_COLOR_CODE_NON_COLOR",
+          message: `Non-color vocabulary '${vocab.id}' term '${term.value}' must not define color_code`,
+          path: `vocabularies[${vocabIdx}].terms[${termIdx}].color_code`
+        });
+      }
 
       for (const alias of term.aliases ?? []) {
         const aliasKey = normalize(alias);
@@ -368,11 +421,11 @@ function validateBindings(
 
       const allowedTerms = binding.override?.allowed_terms;
       if (allowedTerms?.length) {
-        if (attribute.type !== "enum" || !attribute.vocab_ref) {
+        if ((attribute.type !== "enum" && attribute.type !== "color") || !attribute.vocab_ref) {
           issues.push({
             level: "ERROR",
             code: "B_OVERRIDE_NON_ENUM",
-            message: "allowed_terms override is only valid for enum attributes with vocab_ref",
+            message: "allowed_terms override is only valid for enum/color attributes with vocab_ref",
             path: `categories[${catIdx}].attribute_bindings[${bindIdx}].override.allowed_terms`
           });
           continue;

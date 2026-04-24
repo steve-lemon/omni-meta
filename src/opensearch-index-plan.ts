@@ -9,6 +9,7 @@ function readJson<T>(path: string): T {
 function scalarType(attr: Attribute): Record<string, unknown> {
   if (attr.type === "number") return { type: "double" };
   if (attr.type === "boolean") return { type: "boolean" };
+  if (attr.type === "date") return { type: "date" };
   return { type: "keyword", ignore_above: 512 };
 }
 

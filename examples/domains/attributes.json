@@ -35,6 +35,26 @@
     ]
   },
   {
+    "key": "dominant_color",
+    "label": "Dominant Color",
+    "type": "color",
+    "cardinality": "single",
+    "status": "active",
+    "priority": 10,
+    "icon": "palette",
+    "vocab_ref": "vocab_color_palette",
+    "hint": "Choose the most visually dominant garment or scene color."
+  },
+  {
+    "key": "captured_at",
+    "label": "Captured At",
+    "type": "date",
+    "cardinality": "single",
+    "status": "active",
+    "icon": "calendar",
+    "hint": "Use ISO 8601 when the original capture timestamp is known."
+  },
+  {
     "key": "legacy_color",
     "label": "Legacy Color",
     "type": "string",

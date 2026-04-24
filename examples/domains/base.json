@@ -2,6 +2,7 @@
   "schema_version": "2.0.0",
   "meta": {
     "name": "image-metadata-taxonomy",
+    "description": "Fashion-focused reference taxonomy for photo metadata annotation and retrieval.",
     "updated_at": "2026-04-24T00:00:00Z"
   },
   "normalization": {

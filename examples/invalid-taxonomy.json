@@ -2,9 +2,22 @@
   "schema_version": "2.0",
   "meta": {
     "name": "image-metadata-taxonomy",
+    "description": "Intentionally broken sample for validator coverage.",
     "updated_at": "2026-04-24T00:00:00Z"
   },
   "vocabularies": [
+    {
+      "id": "vocab_bad_color",
+      "type": "color",
+      "status": "active",
+      "terms": [
+        {
+          "value": "broken_red",
+          "status": "active",
+          "color_code": "red"
+        }
+      ]
+    },
     {
       "id": "vocab_top_type",
       "status": "active",
@@ -43,11 +56,27 @@
       "vocab_ref": "missing_vocab"
     },
     {
+      "key": "dominant_color",
+      "label": "Dominant Color",
+      "type": "color",
+      "cardinality": "single",
+      "status": "active",
+      "priority": -1
+    },
+    {
       "key": "top_type",
       "label": "Top Type 2",
       "type": "string",
       "cardinality": "single",
       "status": "legacy"
+    },
+    {
+      "key": "captured_at",
+      "label": "Captured At",
+      "type": "date",
+      "cardinality": "single",
+      "status": "active",
+      "vocab_ref": "vocab_bad_color"
     }
   ],
   "categories": [

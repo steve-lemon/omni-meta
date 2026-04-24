@@ -86,6 +86,7 @@ interface TaxonomyFile {
   schema_version: string;
   meta: {
     name: string;
+    description?: string;
     updated_at: string;
   };
   vocabularies: Vocabulary[];
@@ -119,6 +120,7 @@ interface RelationTypeDefinition {
 
 interface Vocabulary {
   id: string;
+  type?: "string" | "color";
   status: Status;
   terms: VocabularyTerm[];
 }
@@ -127,16 +129,20 @@ interface VocabularyTerm {
   value: string;
   status: Status;
   aliases?: string[];
+  color_code?: string;
 }
 
 interface Attribute {
   key: string;
   label: string;
-  type: "string" | "number" | "boolean" | "enum";
+  type: "string" | "number" | "boolean" | "enum" | "color" | "date";
   cardinality: "single" | "multi";
   status: Status;
+  priority?: number;
+  icon?: string;
   aliases?: string[];
   vocab_ref?: string;
+  hint?: string;
 }
 
 interface AttributeBinding {
@@ -194,17 +200,22 @@ interface Rules {
 The generated app must understand these relationships:
 
 1. Vocabulary -> Attribute
-- enum attributes must use `vocab_ref`
-- non-enum attributes must not use `vocab_ref`
-- vocabulary usage should be visible from the vocabulary detail panel
 
-2. Attribute -> Category Binding
+- enum attributes must use `vocab_ref`
+- color attributes must use `vocab_ref` and reference a color vocabulary
+- attributes other than `enum` or `color` must not use `vocab_ref`
+- vocabulary usage should be visible from the vocabulary detail panel
+- color vocabularies should surface term swatches from `color_code`
+
+1. Attribute -> Category Binding
+
 - category binding `key` must reference an existing attribute key
 - binding `override.allowed_terms` only applies to enum attributes with vocabularies
 - allowed terms must be subset of the referenced vocabulary terms
 - if a bound attribute is deprecated, show a warning
 
-3. Category hierarchy
+1. Category hierarchy
+
 - `parent_id` references another category or null
 - no self-parent
 - no cycles
@@ -213,18 +224,21 @@ The generated app must understand these relationships:
 - `search_path` cannot end with `/`
 - `search_path` cannot contain `//`
 
-4. Entity model
+1. Entity model
+
 - `relation_types[].from_entity_type` must reference an entity type
 - `relation_types[].to_entity_type` must reference an entity type
 - runtime entities may carry up to 3 `category_ids`
 - runtime entity input fields should be derived from the merged attribute bindings of the selected categories
 - if multiple categories are selected for an entity, the effective attribute set should follow the configured merge strategy
 
-5. Status lifecycle
+1. Status lifecycle
+
 - `active` and `deprecated` items should render differently
 - deprecated objects should still be editable/viewable
 
-6. Multi-category rules
+1. Multi-category rules
+
 - `union`, `intersection`, `priority` should be explained in the Rules screen
 
 ==================================================
@@ -234,37 +248,43 @@ The generated app must understand these relationships:
 Generate a practical admin console with these screens:
 
 1. Bundle picker screen
+
 - load bundles using `listBundles()`
 - show loading, empty, and error states
 - select a bundle and open the editor
 
-2. Main editor shell
+1. Main editor shell
+
 - top bar with selected bundle, dirty state, validate, save
 - left sidebar navigation
 - center editor workspace
 - right inspector panel for references, warnings, live summary
 
-3. Overview screen
+1. Overview screen
+
 - bundle meta summary
 - counts for vocabularies, terms, attributes, categories, entity types, relation types
 - validation summary
 - deprecated counts
 - broken reference counts
 
-4. Vocabularies screen
+1. Vocabularies screen
+
 - vocabulary list
 - term editor
 - alias chip editor
 - usage inspector
 
-5. Attributes screen
+1. Attributes screen
+
 - attribute table
 - attribute detail form
 - type/cardinality/status editor
 - vocab_ref selector
 - “used by categories” inspector
 
-6. Categories screen
+1. Categories screen
+
 - tree navigation
 - category detail form
 - parent selector
@@ -275,7 +295,8 @@ Generate a practical admin console with these screens:
 - binding row should dynamically show allowed_terms selector when applicable
 - inspector should show inherited attributes and local overrides
 
-7. Entity model screen
+1. Entity model screen
+
 - entity types editor
 - relation types editor
 - from/to selectors
@@ -286,15 +307,18 @@ Generate a practical admin console with these screens:
   - show allowed enum terms after `override.allowed_terms` is applied
   - explain whether the result came from `union`, `intersection`, or `priority`
 
-8. Normalization screen
+1. Normalization screen
+
 - editable toggles/selectors
 - drag/reorder or ordered list editor for alias resolution order
 
-9. Rules screen
+1. Rules screen
+
 - editable rule controls
 - explanation cards for merge strategy
 
-10. Raw JSON / Validation screen
+1. Raw JSON / Validation screen
+
 - readonly pretty JSON preview
 - optional editable raw mode
 - validation issue list with grouping
@@ -317,6 +341,7 @@ interface ValidationIssue {
 ```
 
 Reflect these rules:
+
 - schema_version must be SemVer like `2.0.0`
 - statuses must be `active | deprecated`
 - unique category ids
@@ -327,19 +352,24 @@ Reflect these rules:
 - category cannot parent itself
 - no category cycles
 - enum attribute requires vocab_ref
-- non-enum attribute must not define vocab_ref
+- color attribute requires vocab_ref and a color vocabulary
+- attributes other than enum/color must not define vocab_ref
+- attribute priority must be a non-negative integer when provided
 - vocabulary term values unique inside each vocabulary
 - alias must not collide with canonical term in same vocabulary
 - alias must not map ambiguously to multiple terms in same vocabulary
+- color vocabularies require valid hex `color_code` per term
+- non-color vocabularies must not define `color_code`
 - category binding key must reference an existing attribute
 - deprecated bound attribute should raise warning
-- allowed_terms only valid for enum attributes with vocabulary
+- allowed_terms only valid for enum/color attributes with vocabulary
 - allowed_terms must be subset of referenced vocabulary terms
 - relation from/to types must exist
 - runtime entity category count should be validated as `1..3` in any preview/editor that models actual entity assignment
 - runtime entity attributes should only be editable/selectable when allowed by the selected entity categories
 
 Use validation both:
+
 - globally
 - inline at editor field level where possible
 
@@ -354,6 +384,7 @@ Use this sample bundle for examples, mock data, preview UI, and code samples:
   "schema_version": "2.0.0",
   "meta": {
     "name": "image-metadata-taxonomy",
+    "description": "Fashion-focused reference taxonomy for photo metadata annotation and retrieval.",
     "updated_at": "2026-04-24T00:00:00Z"
   },
   "normalization": {
@@ -403,6 +434,15 @@ Use this sample bundle for examples, mock data, preview UI, and code samples:
       ]
     },
     {
+      "id": "vocab_color_palette",
+      "type": "color",
+      "status": "active",
+      "terms": [
+        { "value": "ivory", "status": "active", "aliases": ["cream"], "color_code": "#FFFFF0" },
+        { "value": "charcoal", "status": "active", "aliases": ["dark_gray"], "color_code": "#36454F" }
+      ]
+    },
+    {
       "id": "vocab_garment_type",
       "status": "active",
       "terms": [
@@ -439,6 +479,26 @@ Use this sample bundle for examples, mock data, preview UI, and code samples:
       "aliases": ["mood_style", "스타일"]
     },
     {
+      "key": "dominant_color",
+      "label": "Dominant Color",
+      "type": "color",
+      "cardinality": "single",
+      "status": "active",
+      "priority": 10,
+      "icon": "palette",
+      "vocab_ref": "vocab_color_palette",
+      "hint": "Choose the most visually dominant garment or scene color."
+    },
+    {
+      "key": "captured_at",
+      "label": "Captured At",
+      "type": "date",
+      "cardinality": "single",
+      "status": "active",
+      "icon": "calendar",
+      "hint": "Use ISO 8601 when the original capture timestamp is known."
+    },
+    {
       "key": "legacy_color",
       "label": "Legacy Color",
       "type": "string",
@@ -466,6 +526,8 @@ Use this sample bundle for examples, mock data, preview UI, and code samples:
       "aliases": ["패션"],
       "inherit_attributes": false,
       "attribute_bindings": [
+        { "key": "captured_at", "required": false, "status": "active" },
+        { "key": "dominant_color", "required": false, "status": "active" },
         { "key": "model", "required": false, "status": "active" },
         { "key": "style", "required": false, "status": "active" }
       ]
@@ -588,6 +650,7 @@ Produce the answer in this order:
 ==================================================
 
 Important:
+
 - Generate real code, not pseudo-code
 - Use TypeScript everywhere
 - Prefer multiple focused files over one giant file
@@ -599,6 +662,7 @@ Important:
 - Make entity category assignment and derived attribute availability first-class in the generated UI, not an afterthought
 
 When there are tradeoffs, choose implementation practicality over theoretical completeness.
+
 ```
 
 ## Recommended Suffix

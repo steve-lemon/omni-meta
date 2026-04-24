@@ -57,6 +57,29 @@
     ]
   },
   {
+    "id": "vocab_color_palette",
+    "type": "color",
+    "status": "active",
+    "terms": [
+      {
+        "value": "ivory",
+        "status": "active",
+        "aliases": [
+          "cream"
+        ],
+        "color_code": "#FFFFF0"
+      },
+      {
+        "value": "charcoal",
+        "status": "active",
+        "aliases": [
+          "dark_gray"
+        ],
+        "color_code": "#36454F"
+      }
+    ]
+  },
+  {
     "id": "vocab_garment_type",
     "status": "active",
     "terms": [
