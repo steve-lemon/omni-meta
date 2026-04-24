@@ -27,6 +27,24 @@ This repository provides:
 - `examples/invalid-taxonomy.json`: Intentionally broken sample that triggers multiple errors.
 - `examples/fashion-photos.json`: Sample photo metadata records used in simulation.
 
+## Branch resume guide
+
+This branch currently centers on three linked capabilities:
+
+- **Validator + CLI baseline** for taxonomy integrity checks.
+- **Fashion-photo simulation** for realistic query behavior.
+- **Multi-category support** with configurable merge strategy (`union | intersection | priority`).
+
+Use this quick flow when resuming work:
+1. `npm run validate:valid` → verify non-blocking path (warnings allowed).
+2. `npm run validate:invalid` → verify blocking error path (expected exit code: `2`).
+3. `npm run simulate` → verify category/attribute normalization and search matching.
+
+Suggested change boundaries:
+- Taxonomy rule/schema changes: update `src/types.ts` + `src/validator.ts` together.
+- Query behavior/scenario changes: update `src/simulation.ts` + `examples/fashion-photos.json` together.
+- CLI/output contract changes: update `src/cli.ts` + README sections that document exit behavior.
+
 ## Run validation (no install required)
 
 Validate valid sample:
