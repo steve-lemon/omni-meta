@@ -109,6 +109,12 @@ Run interactive bundle management CLI:
 npm run bundle:cli
 ```
 
+Validate a manually created bundle with the bundle CLI report view:
+
+```bash
+npm run bundle:cli -- --validate-only path/to/manual-bundle.json
+```
+
 Verbose logs:
 
 ```bash
@@ -132,8 +138,8 @@ npm run bundle:cli
 
 CLI workflow:
 
-1. Select bundle to manage.
-2. Select image to analyze.
+1. Select `bundle 검증` to review a manually authored bundle with grouped issues and recommended improvements.
+2. Or select `이미지 추천 + 피드백 루프` to analyze an image against the bundle.
 3. Auto-recommend metadata tags from bundle vocab/category hints.
 4. Collect feedback on incorrect/missing analysis.
 5. Build an improvement plan.

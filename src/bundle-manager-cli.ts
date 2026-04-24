@@ -1,7 +1,8 @@
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
-import type { TaxonomyFile } from "./types.ts";
+import type { TaxonomyFile, ValidationIssue, ValidationLevel } from "./types.ts";
+import { validateTaxonomy } from "./validator.ts";
 
 type Recommendation = {
   categories: string[];
@@ -13,6 +14,14 @@ type LogLevel = "DEBUG" | "INFO" | "WARN" | "ERROR";
 
 const SESSION_ID = `session-${Date.now()}`;
 const VERBOSE = process.argv.includes("--verbose");
+const VALIDATE_ONLY = process.argv.includes("--validate-only");
+
+type ValidationSummary = {
+  total: number;
+  errors: number;
+  warnings: number;
+  info: number;
+};
 
 function loadEnvFile(path = ".env"): number {
   const full = resolve(process.cwd(), path);
@@ -63,6 +72,109 @@ function saveBundle(path: string, bundle: TaxonomyFile) {
   log("DEBUG", "Saving bundle file", { path: full });
   writeFileSync(full, `${JSON.stringify(bundle, null, 2)}\n`, "utf8");
   log("INFO", "Bundle saved", { path: full, schema_version: bundle.schema_version });
+}
+
+function summarizeIssues(issues: ValidationIssue[]): ValidationSummary {
+  return {
+    total: issues.length,
+    errors: issues.filter((issue) => issue.level === "ERROR").length,
+    warnings: issues.filter((issue) => issue.level === "WARNING").length,
+    info: issues.filter((issue) => issue.level === "INFO").length
+  };
+}
+
+function groupIssuesByLevel(issues: ValidationIssue[]): Record<ValidationLevel, ValidationIssue[]> {
+  return {
+    ERROR: issues.filter((issue) => issue.level === "ERROR"),
+    WARNING: issues.filter((issue) => issue.level === "WARNING"),
+    INFO: issues.filter((issue) => issue.level === "INFO")
+  };
+}
+
+function collectImprovementSuggestions(issues: ValidationIssue[]): string[] {
+  const suggestions = new Set<string>();
+  for (const issue of issues) {
+    if (issue.code.startsWith("R_SCHEMA")) suggestions.add("`schema_version`을 `x.y.z` 형식으로 맞추세요.");
+    if (issue.code.startsWith("R_STATUS")) suggestions.add("모든 `status` 값을 `active | deprecated` 중 하나로 정리하세요.");
+    if (issue.code.includes("DUPLICATE")) suggestions.add("중복 ID/키/별칭을 제거하고 canonical 값을 하나로 정리하세요.");
+    if (issue.code.startsWith("C_PARENT") || issue.code.startsWith("C_SELF_PARENT") || issue.code.startsWith("C_CYCLE")) {
+      suggestions.add("카테고리 트리의 `parent_id` 연결을 다시 점검해 순환과 잘못된 참조를 없애세요.");
+    }
+    if (issue.code.startsWith("C_PATH")) suggestions.add("`search_path`는 선행/후행 `/` 없이, 중복 슬래시 없이 고유하게 유지하세요.");
+    if (issue.code.startsWith("A_VOCAB") || issue.code.startsWith("A_ENUM") || issue.code.startsWith("A_COLOR")) {
+      suggestions.add("속성 타입과 `vocab_ref` 관계를 다시 맞추고, color 속성은 color vocabulary만 참조하게 하세요.");
+    }
+    if (issue.code.startsWith("A_NON_ENUM")) suggestions.add("`enum`/`color`가 아닌 속성에서는 `vocab_ref`를 제거하세요.");
+    if (issue.code.startsWith("A_PRIORITY")) suggestions.add("`priority`는 0 이상의 정수만 사용하세요.");
+    if (issue.code.startsWith("V_COLOR_CODE")) suggestions.add("color vocabulary term에는 유효한 hex `color_code`를 넣고, 일반 vocabulary에는 넣지 마세요.");
+    if (issue.code.startsWith("V_ALIAS")) suggestions.add("같은 vocabulary 안에서 alias가 canonical term이나 다른 term과 충돌하지 않도록 정리하세요.");
+    if (issue.code.startsWith("B_ATTR_NOT_FOUND")) suggestions.add("카테고리 바인딩의 `key`가 실제 attribute 정의를 가리키는지 확인하세요.");
+    if (issue.code.startsWith("B_OVERRIDE")) suggestions.add("`override.allowed_terms`는 enum/color + vocab_ref 조합에서만 쓰고 vocab term subset으로 맞추세요.");
+    if (issue.code.startsWith("E_RELATION")) suggestions.add("relation의 `from_entity_type` / `to_entity_type`가 실제 entity type을 참조하도록 수정하세요.");
+    if (issue.code.startsWith("R_MULTI_CATEGORY")) suggestions.add("`rules.multi_category` 설정값을 허용 범위로 조정하세요.");
+  }
+  return [...suggestions];
+}
+
+function printValidationReport(bundlePath: string, bundle: TaxonomyFile, issues: ValidationIssue[]) {
+  const summary = summarizeIssues(issues);
+  const grouped = groupIssuesByLevel(issues);
+  const suggestions = collectImprovementSuggestions(issues);
+
+  console.log("\n=== Bundle Validation Report ===");
+  console.log(`Bundle: ${bundlePath}`);
+  console.log(`Schema: ${bundle.schema_version}`);
+  console.log(
+    `Counts: categories=${bundle.categories.length}, attributes=${bundle.attributes.length}, vocabularies=${bundle.vocabularies.length}, entity_types=${bundle.entity_model?.entity_types.length ?? 0}, relation_types=${bundle.entity_model?.relation_types.length ?? 0}`
+  );
+  console.log(
+    `Summary: total=${summary.total}, errors=${summary.errors}, warnings=${summary.warnings}, info=${summary.info}`
+  );
+
+  if (issues.length === 0) {
+    console.log("\n상태: 검증 통과. 즉시 사용 가능한 번들입니다.");
+    return;
+  }
+
+  if (grouped.ERROR.length > 0) {
+    console.log("\n[Blocking Errors]");
+    grouped.ERROR.forEach((issue, index) => {
+      const path = issue.path ? ` @ ${issue.path}` : "";
+      console.log(`${index + 1}. ${issue.code}${path}`);
+      console.log(`   ${issue.message}`);
+    });
+  }
+
+  if (grouped.WARNING.length > 0) {
+    console.log("\n[Warnings]");
+    grouped.WARNING.forEach((issue, index) => {
+      const path = issue.path ? ` @ ${issue.path}` : "";
+      console.log(`${index + 1}. ${issue.code}${path}`);
+      console.log(`   ${issue.message}`);
+    });
+  }
+
+  if (grouped.INFO.length > 0) {
+    console.log("\n[Info]");
+    grouped.INFO.forEach((issue, index) => {
+      const path = issue.path ? ` @ ${issue.path}` : "";
+      console.log(`${index + 1}. ${issue.code}${path}`);
+      console.log(`   ${issue.message}`);
+    });
+  }
+
+  if (suggestions.length > 0) {
+    console.log("\n[Recommended Improvements]");
+    suggestions.forEach((suggestion, index) => {
+      console.log(`${index + 1}. ${suggestion}`);
+    });
+  }
+
+  if (summary.errors > 0) {
+    console.log("\n상태: blocking error가 있어 수정 후 다시 검증이 필요합니다.");
+  } else {
+    console.log("\n상태: blocking error는 없고, warning 수준의 정리만 남았습니다.");
+  }
 }
 
 function normalize(v: string) {
@@ -220,6 +332,26 @@ function ensureRuntimeGuideBullet(note: string) {
   return true;
 }
 
+function promptBundlePathFromArgs(): string | undefined {
+  const idx = process.argv.indexOf("--validate-only");
+  if (idx === -1) return undefined;
+  const next = process.argv[idx + 1];
+  if (!next || next.startsWith("--")) return undefined;
+  return next;
+}
+
+function validateBundleForCli(bundlePath: string) {
+  const bundle = loadBundle(bundlePath);
+  const issues = validateTaxonomy(bundle);
+  log("INFO", "Bundle validation completed", {
+    bundlePath,
+    total_issues: issues.length,
+    errors: issues.filter((issue) => issue.level === "ERROR").length
+  });
+  printValidationReport(bundlePath, bundle, issues);
+  return { bundle, issues };
+}
+
 async function executeApprovedActions(
   rl: ReturnType<typeof createInterface>,
   bundlePath: string,
@@ -286,7 +418,27 @@ async function main() {
     });
     log("INFO", "Bundle Manager CLI starting", { verbose: VERBOSE });
     console.log("=== Bundle Manager CLI ===");
-    console.log("지원 시나리오: bundle 선택 -> 이미지 선택 -> 태그 추천 -> 피드백 -> 계획/승인 -> 작업 -> 반복");
+    console.log("지원 시나리오: 수동 bundle 검증 또는 이미지 기반 추천/개선 루프");
+
+    const argBundlePath = promptBundlePathFromArgs();
+    if (VALIDATE_ONLY) {
+      const bundlePath = argBundlePath ?? "examples/fashion.json";
+      if (!existsSync(resolve(process.cwd(), bundlePath))) {
+        log("ERROR", "Bundle path does not exist", { bundlePath });
+        console.error(`Bundle not found: ${bundlePath}`);
+        process.exit(1);
+      }
+
+      const { issues } = validateBundleForCli(bundlePath);
+      if (issues.some((issue) => issue.level === "ERROR")) {
+        process.exit(2);
+      }
+      return;
+    }
+
+    console.log("1) bundle 검증");
+    console.log("2) 이미지 추천 + 피드백 루프");
+    const mode = (await rl.question("작업 모드 선택 (default: 1): ")).trim() || "1";
 
     const bundlePathInput = await rl.question("관리할 bundle 경로 (default: examples/fashion.json): ");
     const bundlePath = bundlePathInput.trim() || "examples/fashion.json";
@@ -300,6 +452,14 @@ async function main() {
 
     let bundle = loadBundle(bundlePath);
     console.log(`Loaded bundle: ${bundlePath} (schema ${bundle.schema_version})`);
+
+    if (mode === "1") {
+      const { issues } = validateBundleForCli(bundlePath);
+      if (issues.some((issue) => issue.level === "ERROR")) {
+        console.log("\n필요하면 같은 CLI에서 번들을 수정한 뒤 다시 검증할 수 있습니다.");
+      }
+      return;
+    }
 
     let round = 0;
     while (true) {
