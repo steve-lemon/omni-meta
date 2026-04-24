@@ -26,6 +26,7 @@ This repository provides:
 - `examples/valid-taxonomy.json`: Valid sample with one warning (deprecated attribute usage).
 - `examples/invalid-taxonomy.json`: Intentionally broken sample that triggers multiple errors.
 - `examples/fashion-photos.json`: Sample photo metadata records used in simulation.
+- `docs/photo-design-review.md`: Photo-driven gap analysis and taxonomy improvement proposals.
 
 ## Branch resume guide
 
