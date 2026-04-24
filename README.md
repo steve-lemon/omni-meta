@@ -25,6 +25,7 @@ This repository provides:
 - `src/cli.ts`: CLI entry for validating a JSON file.
 - `src/simulation.ts`: Simulation runner for fashion-model-photo metadata search scenarios.
 - `src/build-bundle.ts`: Merges domain-managed standards into runtime `fashion.json`.
+- `src/bundle-manager-cli.ts`: Interactive CLI for bundle/image analysis-feedback-improvement loop.
 - `src/opensearch-mapping.ts`: Generates OpenSearch mapping from taxonomy types.
 - `src/opensearch-index-plan.ts`: Generates OpenSearch index template + reindex plan artifacts.
 - `examples/valid-taxonomy.json`: Valid sample with one warning (deprecated attribute usage).
@@ -35,6 +36,7 @@ This repository provides:
 - `docs/photo-design-review.md`: Photo-driven gap analysis and taxonomy improvement proposals.
 - `docs/runtime-considerations.md`: Runtime bundle/NoSQL/OpenSearch implementation guidance.
 - `docs/nosql-migration-playbook.md`: Versioned NoSQL migration strategy and safeguards.
+- `docs/bundle-cli-workflow.md`: CLI loop guide for bundle-based analysis/feedback updates.
 
 ## Branch resume guide
 
@@ -97,6 +99,21 @@ Generate OpenSearch template + reindex plan:
 ```bash
 npm run os:plan
 ```
+
+Run interactive bundle management CLI:
+
+```bash
+npm run bundle:cli
+```
+
+CLI workflow:
+1. Select bundle to manage.
+2. Select image to analyze.
+3. Auto-recommend metadata tags from bundle vocab/category hints.
+4. Collect feedback on incorrect/missing analysis.
+5. Build an improvement plan.
+6. Review/approve plan and execute updates (bundle/doc).
+7. Re-run analysis with updated bundle until feedback is closed.
 
 > This project uses Node's `--experimental-strip-types` to execute `.ts` files directly.
 
