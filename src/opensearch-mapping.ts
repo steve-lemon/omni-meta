@@ -53,7 +53,8 @@ function buildMapping(taxonomy: TaxonomyFile): Record<string, unknown> {
             category_ids: { type: "keyword" },
             attributes: {
               type: "object",
-              dynamic: true
+              dynamic: "strict",
+              properties: metadataProps
             }
           }
         },
