@@ -16,7 +16,7 @@ This repository provides:
 - Shared vocabularies for enum attributes, including alias normalization.
 - Status lifecycle support (`active` | `deprecated`) across categories/attributes/terms.
 - Multi-category support (max 3 categories per photo) with flexible attribute merge strategy.
-- Optional entity-graph model for multi-entity photos (entities + typed relations).
+- Optional entity-graph model for multi-entity photos (entities + typed relations), where each entity has up to 3 categories and category-governed attributes.
 
 ## Project structure
 

@@ -24,23 +24,38 @@
             "minimal",
             "casual"
           ]
-        }
+        },
+        "category_ids": [
+          "person"
+        ]
       },
       {
         "id": "e_shirt_001",
         "type": "dress",
         "attributes": {
-          "color": "white",
-          "silhouette": "top_like"
-        }
+          "garment_type": "slip_dress",
+          "style": [
+            "minimal",
+            "casual"
+          ]
+        },
+        "category_ids": [
+          "dress"
+        ]
       },
       {
         "id": "e_shoes_001",
         "type": "footwear",
         "attributes": {
           "footwear_type": "loafer",
-          "color": "black"
-        }
+          "style": [
+            "minimal",
+            "casual"
+          ]
+        },
+        "category_ids": [
+          "footwear"
+        ]
       }
     ],
     "relations": [
@@ -130,47 +145,73 @@
         "type": "model",
         "attributes": {
           "model": "haeun",
-          "pose": "seated",
-          "occlusion_level": "partial_face"
-        }
+          "style": [
+            "minimal",
+            "casual"
+          ],
+          "pose_type": "seated"
+        },
+        "category_ids": [
+          "person"
+        ]
       },
       {
         "id": "e_dress_006",
         "type": "dress",
         "attributes": {
-          "color": "muted_blue_green",
-          "garment_type": "slip_dress"
-        }
+          "garment_type": "slip_dress",
+          "style": [
+            "minimal",
+            "casual"
+          ]
+        },
+        "category_ids": [
+          "dress"
+        ]
       },
       {
         "id": "e_footwear_006",
         "type": "footwear",
         "attributes": {
           "footwear_type": "loafer",
-          "color": "black"
-        }
+          "style": [
+            "minimal",
+            "casual"
+          ]
+        },
+        "category_ids": [
+          "footwear"
+        ]
       },
       {
         "id": "e_place_006",
         "type": "place",
         "attributes": {
-          "scene_type": "cafe_exterior",
-          "lighting_type": "natural_sunlight"
-        }
+          "scene_type": "cafe_exterior"
+        },
+        "category_ids": [
+          "place"
+        ]
       },
       {
         "id": "e_chair_006",
         "type": "prop",
         "attributes": {
           "prop_type": "chair"
-        }
+        },
+        "category_ids": [
+          "prop"
+        ]
       },
       {
         "id": "e_bag_006",
         "type": "prop",
         "attributes": {
           "prop_type": "backpack"
-        }
+        },
+        "category_ids": [
+          "prop"
+        ]
       }
     ],
     "relations": [

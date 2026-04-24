@@ -25,7 +25,6 @@ export interface EntityTypeDefinition {
   label: string;
   status: Status;
   aliases?: string[];
-  allowed_attribute_keys?: string[];
 }
 
 export interface RelationTypeDefinition {

@@ -79,6 +79,7 @@ To improve extensibility, each photo should support a graph payload:
 
 - `entities[]`: node list (e.g., `model`, `dress`, `footwear`, `prop`, `place`)
 - `relations[]`: typed edges between nodes (e.g., `wears`, `sits_on`, `located_at`)
+- each entity includes `category_ids` (max 3), and entity `attributes` must be valid under those category bindings.
 
 This allows one photo to contain many entities and explicit semantics between them.
 
@@ -88,8 +89,8 @@ This allows one photo to contain many entities and explicit semantics between th
 {
   "id": "ph_006",
   "entities": [
-    { "id": "e_model_006", "type": "model", "attributes": { "model": "haeun" } },
-    { "id": "e_dress_006", "type": "dress", "attributes": { "color": "muted_blue_green" } }
+    { "id": "e_model_006", "type": "model", "category_ids": ["person"], "attributes": { "model": "haeun" } },
+    { "id": "e_dress_006", "type": "dress", "category_ids": ["dress"], "attributes": { "garment_type": "slip_dress" } }
   ],
   "relations": [
     { "type": "wears", "from_entity_id": "e_model_006", "to_entity_id": "e_dress_006" }

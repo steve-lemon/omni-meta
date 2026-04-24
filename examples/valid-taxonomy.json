@@ -61,6 +61,107 @@
           ]
         }
       ]
+    },
+    {
+      "id": "vocab_garment_type",
+      "status": "active",
+      "terms": [
+        {
+          "value": "shirt",
+          "status": "active",
+          "aliases": [
+            "셔츠"
+          ]
+        },
+        {
+          "value": "slip_dress",
+          "status": "active",
+          "aliases": [
+            "슬립드레스",
+            "dress"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vocab_footwear_type",
+      "status": "active",
+      "terms": [
+        {
+          "value": "loafer",
+          "status": "active",
+          "aliases": [
+            "로퍼"
+          ]
+        },
+        {
+          "value": "sneaker",
+          "status": "active",
+          "aliases": [
+            "스니커즈"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vocab_scene_type",
+      "status": "active",
+      "terms": [
+        {
+          "value": "cafe_exterior",
+          "status": "active",
+          "aliases": [
+            "카페외부"
+          ]
+        },
+        {
+          "value": "street",
+          "status": "active",
+          "aliases": [
+            "거리"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vocab_prop_type",
+      "status": "active",
+      "terms": [
+        {
+          "value": "chair",
+          "status": "active",
+          "aliases": [
+            "의자"
+          ]
+        },
+        {
+          "value": "backpack",
+          "status": "active",
+          "aliases": [
+            "백팩"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vocab_pose_type",
+      "status": "active",
+      "terms": [
+        {
+          "value": "seated",
+          "status": "active",
+          "aliases": [
+            "앉음"
+          ]
+        },
+        {
+          "value": "standing",
+          "status": "active",
+          "aliases": [
+            "서있음"
+          ]
+        }
+      ]
     }
   ],
   "attributes": [
@@ -107,6 +208,61 @@
       "status": "deprecated",
       "aliases": [
         "color_old"
+      ]
+    },
+    {
+      "key": "garment_type",
+      "label": "Garment Type",
+      "type": "enum",
+      "cardinality": "single",
+      "status": "active",
+      "vocab_ref": "vocab_garment_type",
+      "aliases": [
+        "의류종류"
+      ]
+    },
+    {
+      "key": "footwear_type",
+      "label": "Footwear Type",
+      "type": "enum",
+      "cardinality": "single",
+      "status": "active",
+      "vocab_ref": "vocab_footwear_type",
+      "aliases": [
+        "신발종류"
+      ]
+    },
+    {
+      "key": "scene_type",
+      "label": "Scene Type",
+      "type": "enum",
+      "cardinality": "single",
+      "status": "active",
+      "vocab_ref": "vocab_scene_type",
+      "aliases": [
+        "장면유형"
+      ]
+    },
+    {
+      "key": "prop_type",
+      "label": "Prop Type",
+      "type": "enum",
+      "cardinality": "single",
+      "status": "active",
+      "vocab_ref": "vocab_prop_type",
+      "aliases": [
+        "소품유형"
+      ]
+    },
+    {
+      "key": "pose_type",
+      "label": "Pose Type",
+      "type": "enum",
+      "cardinality": "single",
+      "status": "active",
+      "vocab_ref": "vocab_pose_type",
+      "aliases": [
+        "포즈"
       ]
     }
   ],
@@ -177,7 +333,132 @@
           "key": "legacy_color",
           "required": false,
           "status": "active"
+        },
+        {
+          "key": "garment_type",
+          "required": false,
+          "status": "active",
+          "override": {
+            "allowed_terms": [
+              "shirt"
+            ]
+          }
         }
+      ]
+    },
+    {
+      "id": "dress",
+      "name": "Dress",
+      "parent_id": "fashion",
+      "search_path": "fashion/dress",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "garment_type",
+          "required": true,
+          "status": "active",
+          "override": {
+            "allowed_terms": [
+              "slip_dress"
+            ]
+          }
+        },
+        {
+          "key": "style",
+          "required": false,
+          "status": "active"
+        }
+      ],
+      "aliases": [
+        "드레스"
+      ]
+    },
+    {
+      "id": "footwear",
+      "name": "Footwear",
+      "parent_id": "fashion",
+      "search_path": "fashion/footwear",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "footwear_type",
+          "required": true,
+          "status": "active"
+        },
+        {
+          "key": "style",
+          "required": false,
+          "status": "active"
+        }
+      ],
+      "aliases": [
+        "신발"
+      ]
+    },
+    {
+      "id": "place",
+      "name": "Place",
+      "parent_id": "fashion",
+      "search_path": "fashion/place",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "scene_type",
+          "required": true,
+          "status": "active"
+        }
+      ],
+      "aliases": [
+        "장소"
+      ]
+    },
+    {
+      "id": "prop",
+      "name": "Prop",
+      "parent_id": "fashion",
+      "search_path": "fashion/prop",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "prop_type",
+          "required": true,
+          "status": "active"
+        }
+      ],
+      "aliases": [
+        "소품"
+      ]
+    },
+    {
+      "id": "person",
+      "name": "Person",
+      "parent_id": "fashion",
+      "search_path": "fashion/person",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "model",
+          "required": false,
+          "status": "active"
+        },
+        {
+          "key": "pose_type",
+          "required": false,
+          "status": "active"
+        },
+        {
+          "key": "style",
+          "required": false,
+          "status": "active"
+        }
+      ],
+      "aliases": [
+        "인물"
       ]
     }
   ],
@@ -219,27 +500,17 @@
         "status": "active",
         "aliases": [
           "person"
-        ],
-        "allowed_attribute_keys": [
-          "model",
-          "style"
         ]
       },
       {
         "id": "dress",
         "label": "Dress Entity",
-        "status": "active",
-        "allowed_attribute_keys": [
-          "style"
-        ]
+        "status": "active"
       },
       {
         "id": "footwear",
         "label": "Footwear Entity",
-        "status": "active",
-        "allowed_attribute_keys": [
-          "style"
-        ]
+        "status": "active"
       },
       {
         "id": "prop",

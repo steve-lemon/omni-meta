@@ -21,6 +21,7 @@ type QueryInput = {
 type PhotoEntity = {
   id: string;
   type: string;
+  category_ids: string[];
   attributes: Record<string, string | string[]>;
 };
 
@@ -32,6 +33,7 @@ type PhotoRelation = {
 
 type EntityFilter = {
   type?: string;
+  categories?: string[];
   attributes?: Record<string, string | string[]>;
 };
 
@@ -224,7 +226,10 @@ function normalizeQuery(query: QueryInput, taxonomy: TaxonomyFile): QueryInput {
   }
 
   if (query.entity_filters?.length) {
-    out.entity_filters = query.entity_filters;
+    out.entity_filters = query.entity_filters.map((filter) => ({
+      ...filter,
+      categories: filter.categories?.map((cat) => canonicalizeCategory(cat, taxonomy)?.id ?? cat)
+    }));
   }
   if (query.relation_filters?.length) {
     out.relation_filters = query.relation_filters;
@@ -291,6 +296,11 @@ function matchesEntityFilters(photo: PhotoRecord, entityFilters: EntityFilter[])
 
 function matchesSingleEntityFilter(entity: PhotoEntity, filter: EntityFilter): boolean {
   if (filter.type && normalize(filter.type) !== normalize(entity.type)) return false;
+  if (filter.categories?.length) {
+    for (const categoryId of filter.categories) {
+      if (!entity.category_ids.includes(categoryId)) return false;
+    }
+  }
   if (!filter.attributes) return true;
 
   for (const [key, wanted] of Object.entries(filter.attributes)) {
@@ -327,6 +337,58 @@ function normalize(value: string): string {
   return value.trim().toLowerCase().normalize("NFC");
 }
 
+function effectiveBindingMapForEntity(entity: PhotoEntity, taxonomy: TaxonomyFile): Map<string, EffectiveBinding> {
+  const maxAllowed = 3;
+  if (entity.category_ids.length === 0) {
+    throw new Error(`Entity '${entity.id}' must have at least one category.`);
+  }
+  if (entity.category_ids.length > maxAllowed) {
+    throw new Error(`Entity '${entity.id}' has ${entity.category_ids.length} categories (max ${maxAllowed}).`);
+  }
+
+  const categoryMaps = entity.category_ids.map((categoryId) => bindingMapForCategory(categoryId, taxonomy));
+  return mergeBindingMaps(categoryMaps, taxonomy.rules.multi_category.attribute_merge_strategy);
+}
+
+function validateEntityAttributes(photo: PhotoRecord, taxonomy: TaxonomyFile): void {
+  const attributeByKey = new Map(taxonomy.attributes.map((a) => [a.key, a]));
+  const vocabularyById = new Map(taxonomy.vocabularies.map((v) => [v.id, v]));
+
+  for (const entity of photo.entities ?? []) {
+    const bindingMap = effectiveBindingMapForEntity(entity, taxonomy);
+    for (const [key, rawValue] of Object.entries(entity.attributes)) {
+      const binding = bindingMap.get(key);
+      if (!binding) {
+        throw new Error(`Photo '${photo.id}' entity '${entity.id}' uses '${key}' not allowed by entity categories.`);
+      }
+
+      const attribute = attributeByKey.get(key);
+      if (!attribute) continue;
+
+      const values = Array.isArray(rawValue) ? rawValue : [rawValue];
+      if (attribute.type === "enum" && attribute.vocab_ref) {
+        const vocab = vocabularyById.get(attribute.vocab_ref);
+        if (!vocab) continue;
+        const vocabTerms = new Set(vocab.terms.map((term) => normalize(term.value)));
+
+        for (const val of values) {
+          const normalized = normalize(val);
+          if (!vocabTerms.has(normalized)) {
+            throw new Error(
+              `Photo '${photo.id}' entity '${entity.id}' has enum value '${val}' not in vocabulary '${vocab.id}'.`
+            );
+          }
+          if (binding.allowedTerms && binding.allowedTerms.size > 0 && !binding.allowedTerms.has(normalized)) {
+            throw new Error(
+              `Photo '${photo.id}' entity '${entity.id}' value '${val}' is outside allowed_terms for '${key}'.`
+            );
+          }
+        }
+      }
+    }
+  }
+}
+
 function main() {
   const taxonomy = loadJson<TaxonomyFile>("examples/valid-taxonomy.json");
   const photos = loadJson<PhotoRecord[]>("examples/fashion-photos.json");
@@ -336,6 +398,10 @@ function main() {
   if (errors.length > 0) {
     console.error("Taxonomy has blocking errors; simulation aborted.");
     process.exit(2);
+  }
+
+  for (const photo of photos) {
+    validateEntityAttributes(photo, taxonomy);
   }
 
   const scenarios: Array<{ name: string; query: QueryInput; note: string }> = [
@@ -369,8 +435,8 @@ function main() {
         categories: ["fashion"],
         filters: { style: ["minimal"] },
         entity_filters: [
-          { type: "dress", attributes: { color: "muted_blue_green" } },
-          { type: "footwear", attributes: { footwear_type: "loafer" } }
+          { type: "dress", categories: ["fashion/dress"], attributes: { garment_type: "slip_dress" } },
+          { type: "footwear", categories: ["fashion/footwear"], attributes: { footwear_type: "loafer" } }
         ],
         relation_filters: [{ type: "wears", from_type: "model", to_type: "dress" }]
       },
