@@ -174,7 +174,7 @@
       "terms": [
         {
           "value": "맑음",
-          "status": "deprecated",
+          "status": "active",
           "aliases": [
             "화창함"
           ]
@@ -306,7 +306,7 @@
     {
       "key": "dominant_colors",
       "label": "주요 색상",
-      "type": "enum",
+      "type": "color",
       "cardinality": "multi",
       "status": "active",
       "vocab_ref": "colors",
@@ -712,6 +712,83 @@
       "aliases": []
     }
   ],
+  "entity_model": {
+    "entity_types": [
+      {
+        "id": "model",
+        "label": "Model",
+        "status": "active",
+        "aliases": [
+          "person",
+          "subject"
+        ]
+      },
+      {
+        "id": "dress",
+        "label": "Dress",
+        "status": "active",
+        "aliases": [
+          "onepiece"
+        ]
+      },
+      {
+        "id": "bag",
+        "label": "Bag",
+        "status": "active",
+        "aliases": [
+          "backpack",
+          "handbag"
+        ]
+      },
+      {
+        "id": "chair",
+        "label": "Chair",
+        "status": "active",
+        "aliases": [
+          "seat"
+        ]
+      },
+      {
+        "id": "place",
+        "label": "Place",
+        "status": "active",
+        "aliases": [
+          "location",
+          "background_place"
+        ]
+      }
+    ],
+    "relation_types": [
+      {
+        "id": "wears",
+        "label": "Wears",
+        "status": "active",
+        "from_entity_type": "model",
+        "to_entity_type": "dress"
+      },
+      {
+        "id": "sits_on",
+        "label": "Sits On",
+        "status": "active",
+        "from_entity_type": "model",
+        "to_entity_type": "chair"
+      },
+      {
+        "id": "placed_on",
+        "label": "Placed On",
+        "status": "active",
+        "from_entity_type": "bag",
+        "to_entity_type": "chair"
+      },
+      {
+        "id": "located_at",
+        "label": "Located At",
+        "status": "active",
+        "from_entity_type": "model",
+        "to_entity_type": "place"
+      }
+    ]
+  },
   "normalization": {
     "case_insensitive": true,
     "trim_whitespace": true,
