@@ -72,3 +72,33 @@ The photo appears to show a person seated outdoors in front of a cafe window/men
 2. Add validator rules for new required/consistency checks (`validator.ts`).
 3. Expand sample photo dataset and simulation scenarios (`fashion-photos.json`, `simulation.ts`).
 4. Keep README in sync with new query examples and exit-code expectations.
+
+## 5) Flexible entity-relation model (for multi-entity photos)
+
+To improve extensibility, each photo should support a graph payload:
+
+- `entities[]`: node list (e.g., `model`, `dress`, `footwear`, `prop`, `place`)
+- `relations[]`: typed edges between nodes (e.g., `wears`, `sits_on`, `located_at`)
+
+This allows one photo to contain many entities and explicit semantics between them.
+
+### Minimal example shape
+
+```json
+{
+  "id": "ph_006",
+  "entities": [
+    { "id": "e_model_006", "type": "model", "attributes": { "model": "haeun" } },
+    { "id": "e_dress_006", "type": "dress", "attributes": { "color": "muted_blue_green" } }
+  ],
+  "relations": [
+    { "type": "wears", "from_entity_id": "e_model_006", "to_entity_id": "e_dress_006" }
+  ]
+}
+```
+
+### Why this is better than flat metadata-only
+
+1. **Many-entity support**: multiple garments/props/people per image without key collisions.
+2. **Compositional queries**: e.g., “model wears dress AND model sits_on chair”.
+3. **Future-proofing**: add entity types (bag, accessory, logo, text-block) without breaking existing keys.

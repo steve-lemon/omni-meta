@@ -7,11 +7,38 @@ type PhotoRecord = {
   id: string;
   category_ids: string[];
   metadata: Record<string, string | string[]>;
+  entities?: PhotoEntity[];
+  relations?: PhotoRelation[];
 };
 
 type QueryInput = {
   categories?: string[];
   filters: Record<string, string | string[]>;
+  entity_filters?: EntityFilter[];
+  relation_filters?: RelationFilter[];
+};
+
+type PhotoEntity = {
+  id: string;
+  type: string;
+  attributes: Record<string, string | string[]>;
+};
+
+type PhotoRelation = {
+  type: string;
+  from_entity_id: string;
+  to_entity_id: string;
+};
+
+type EntityFilter = {
+  type?: string;
+  attributes?: Record<string, string | string[]>;
+};
+
+type RelationFilter = {
+  type: string;
+  from_type?: string;
+  to_type?: string;
 };
 
 type EffectiveBinding = {
@@ -196,6 +223,13 @@ function normalizeQuery(query: QueryInput, taxonomy: TaxonomyFile): QueryInput {
     }
   }
 
+  if (query.entity_filters?.length) {
+    out.entity_filters = query.entity_filters;
+  }
+  if (query.relation_filters?.length) {
+    out.relation_filters = query.relation_filters;
+  }
+
   return out;
 }
 
@@ -233,6 +267,57 @@ function matchesPhoto(photo: PhotoRecord, query: QueryInput, taxonomy: TaxonomyF
     }
 
     if (!includesAll(actualArray, wantedArray)) return false;
+  }
+
+  if (query.entity_filters?.length && !matchesEntityFilters(photo, query.entity_filters)) {
+    return false;
+  }
+
+  if (query.relation_filters?.length && !matchesRelationFilters(photo, query.relation_filters)) {
+    return false;
+  }
+
+  return true;
+}
+
+function matchesEntityFilters(photo: PhotoRecord, entityFilters: EntityFilter[]): boolean {
+  const entities = photo.entities ?? [];
+  for (const filter of entityFilters) {
+    const hit = entities.some((entity) => matchesSingleEntityFilter(entity, filter));
+    if (!hit) return false;
+  }
+  return true;
+}
+
+function matchesSingleEntityFilter(entity: PhotoEntity, filter: EntityFilter): boolean {
+  if (filter.type && normalize(filter.type) !== normalize(entity.type)) return false;
+  if (!filter.attributes) return true;
+
+  for (const [key, wanted] of Object.entries(filter.attributes)) {
+    const actual = entity.attributes[key];
+    if (actual === undefined) return false;
+    const actualArray = Array.isArray(actual) ? actual : [actual];
+    const wantedArray = Array.isArray(wanted) ? wanted : [wanted];
+    if (!includesAll(actualArray, wantedArray)) return false;
+  }
+  return true;
+}
+
+function matchesRelationFilters(photo: PhotoRecord, relationFilters: RelationFilter[]): boolean {
+  const relations = photo.relations ?? [];
+  const entityById = new Map((photo.entities ?? []).map((e) => [e.id, e]));
+
+  for (const filter of relationFilters) {
+    const hit = relations.some((relation) => {
+      if (normalize(relation.type) !== normalize(filter.type)) return false;
+      const from = entityById.get(relation.from_entity_id);
+      const to = entityById.get(relation.to_entity_id);
+      if (!from || !to) return false;
+      if (filter.from_type && normalize(from.type) !== normalize(filter.from_type)) return false;
+      if (filter.to_type && normalize(to.type) !== normalize(filter.to_type)) return false;
+      return true;
+    });
+    if (!hit) return false;
   }
 
   return true;
@@ -277,6 +362,19 @@ function main() {
         filters: { person: "mina", upper_type: "shirt", 스타일: ["미니멀"] }
       },
       note: "category/attribute/value alias 정규화"
+    },
+    {
+      name: "S4 - 엔터티/관계 기반 검색",
+      query: {
+        categories: ["fashion"],
+        filters: { style: ["minimal"] },
+        entity_filters: [
+          { type: "dress", attributes: { color: "muted_blue_green" } },
+          { type: "footwear", attributes: { footwear_type: "loafer" } }
+        ],
+        relation_filters: [{ type: "wears", from_type: "model", to_type: "dress" }]
+      },
+      note: "한 사진 내 복수 엔터티 + 관계(모델이 드레스를 착용) 검색"
     }
   ];
 

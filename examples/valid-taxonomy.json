@@ -210,5 +210,77 @@
       "max_categories_per_photo": 3,
       "attribute_merge_strategy": "intersection"
     }
+  },
+  "entity_model": {
+    "entity_types": [
+      {
+        "id": "model",
+        "label": "Model Entity",
+        "status": "active",
+        "aliases": [
+          "person"
+        ],
+        "allowed_attribute_keys": [
+          "model",
+          "style"
+        ]
+      },
+      {
+        "id": "dress",
+        "label": "Dress Entity",
+        "status": "active",
+        "allowed_attribute_keys": [
+          "style"
+        ]
+      },
+      {
+        "id": "footwear",
+        "label": "Footwear Entity",
+        "status": "active",
+        "allowed_attribute_keys": [
+          "style"
+        ]
+      },
+      {
+        "id": "prop",
+        "label": "Prop Entity",
+        "status": "active"
+      },
+      {
+        "id": "place",
+        "label": "Place Entity",
+        "status": "active"
+      }
+    ],
+    "relation_types": [
+      {
+        "id": "wears",
+        "label": "Wears",
+        "status": "active",
+        "from_entity_type": "model",
+        "to_entity_type": "dress"
+      },
+      {
+        "id": "wears_footwear",
+        "label": "Wears Footwear",
+        "status": "active",
+        "from_entity_type": "model",
+        "to_entity_type": "footwear"
+      },
+      {
+        "id": "sits_on",
+        "label": "Sits On",
+        "status": "active",
+        "from_entity_type": "model",
+        "to_entity_type": "prop"
+      },
+      {
+        "id": "located_at",
+        "label": "Located At",
+        "status": "active",
+        "from_entity_type": "model",
+        "to_entity_type": "place"
+      }
+    ]
   }
 }

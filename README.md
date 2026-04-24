@@ -16,6 +16,7 @@ This repository provides:
 - Shared vocabularies for enum attributes, including alias normalization.
 - Status lifecycle support (`active` | `deprecated`) across categories/attributes/terms.
 - Multi-category support (max 3 categories per photo) with flexible attribute merge strategy.
+- Optional entity-graph model for multi-entity photos (entities + typed relations).
 
 ## Project structure
 
@@ -82,10 +83,11 @@ npm run simulate
 
 ## Simulation scenarios
 
-`npm run simulate` runs 3 scenarios:
+`npm run simulate` runs 4 scenarios:
 1. **기본 정밀 검색**: 단일 카테고리 + 모델/상의/스타일 조건.
 2. **멀티 카테고리 공통 속성 검색**: 복수 카테고리 지정 시 공통 속성(intersection) 중심 검색.
 3. **alias 정규화 검색**: category/attribute/value alias 입력을 canonical 값으로 정규화 후 검색.
+4. **엔터티/관계 기반 검색**: 한 사진 내 복수 엔터티와 관계(예: 모델-착용-드레스) 조건으로 검색.
 
 The simulation enforces category inheritance-aware bindings and applies the configured multi-category merge strategy.
 
