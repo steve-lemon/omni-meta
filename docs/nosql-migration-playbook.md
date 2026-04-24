@@ -34,12 +34,14 @@ This guide defines how to evolve photo metadata safely while preserving search/i
 ## Breaking-change checklist
 
 Treat as breaking if any of the following occur:
+
 - Attribute type change (`string` -> `number`, etc.)
 - Enum vocabulary canonical term removal
 - Category path/id removal or repurpose
 - Entity relation type semantic change
 
 For breaking changes:
+
 - never in-place mutate existing docs;
 - write transformed copy with new version;
 - preserve rollback path via alias/version.

@@ -9,6 +9,7 @@ This document reflects production-oriented constraints for metadata governance, 
 - Include a bundle checksum/version to support safe cache invalidation when standards change.
 
 Recommended startup flow:
+
 1. Build and publish `fashion.json` (`npm run build:bundle` in CI).
 2. Validate taxonomy/model integrity (`validateTaxonomy`).
 3. Build fast lookup maps (category by id, attribute by key, vocab by id).
@@ -17,6 +18,7 @@ Recommended startup flow:
 ## 2) Separate management per domain
 
 Even if runtime loads one bundle, source-of-truth can stay domain-separated:
+
 - `fashion-core` (global rules, normalization)
 - `fashion-garment` (garment-related vocab/attributes)
 - `fashion-scene` (scene/pose/prop vocab)
@@ -29,6 +31,7 @@ CI should merge domain files into `fashion.json` and run validation before publi
 Store each photo as a single document keyed by `photo_id`.
 
 Suggested document shape:
+
 - `photo_id` (PK)
 - `category_ids` (photo-level categories)
 - `metadata` (typed scalar/array fields)
@@ -41,6 +44,7 @@ Key point: keep values in native types (string/number/boolean/array), not serial
 ## 4) OpenSearch indexing (type-safe)
 
 To keep search reliable:
+
 - Use strict mappings for known top-level fields.
 - Keep `metadata.<attr>` mapped by taxonomy type (`keyword`, `double`, `boolean`).
 - Use `nested` for `entities` and `relations` to preserve relation-local query semantics.

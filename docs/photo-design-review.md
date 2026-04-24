@@ -5,11 +5,13 @@
 The photo appears to show a person seated outdoors in front of a cafe window/menu board, with mixed sunlight/shadow and multiple scene objects (chair, backpack, plants, wall texture, signage).
 
 ### Core fashion candidates (already partly covered)
+
 - `style`: minimal / casual
 - `top_type`: likely dress-like silhouette (current schema only has tops-centric enum terms)
 - color cues: muted blue-green garment, black shoes, white socks
 
 ### Scene/context candidates (currently missing)
+
 - `location_type`: cafe_exterior / street
 - `background_text_presence`: true (menu/signage text visible)
 - `lighting`: natural_sunlight / hard_shadow
@@ -17,6 +19,7 @@ The photo appears to show a person seated outdoors in front of a cafe window/men
 - `props`: chair, backpack, plant
 
 ### Quality/annotation candidates (currently missing)
+
 - `occlusion_level`: partial face occlusion (hand covering mouth)
 - `text_legibility`: medium-high (large menu text readable)
 - `subject_count`: single
@@ -41,6 +44,7 @@ The photo appears to show a person seated outdoors in front of a cafe window/men
 ## 3) Recommended improvements
 
 ## A. Taxonomy extension (priority)
+
 - Add categories for one-piece garments (e.g., `fashion/onepiece/dress`) and footwear/accessory dimensions.
 - Add enum attributes:
   - `scene_type` (`cafe_exterior`, `street`, `studio`, ...)
@@ -52,15 +56,18 @@ The photo appears to show a person seated outdoors in front of a cafe window/men
   - `accent_colors` (multi enum)
 
 ## B. Normalization/alias policy
+
 - Add Korean/English alias sets for new scene and pose terms.
 - Keep canonical storage in one language while allowing multilingual query aliases.
 
 ## C. Validation rules
+
 - If `shot_framing=full_body`, require at least one lower-body or footwear-related attribute group where applicable.
 - If `scene_type` is present, ensure value belongs to defined scene vocabulary.
 - Add warning when only deprecated color attributes are present without canonical replacement.
 
 ## D. Simulation coverage
+
 - Introduce a new scenario that queries by scene+fashion jointly, e.g.:
   - `categories: ["fashion/onepiece/dress"]`
   - `filters: { scene_type: "cafe_exterior", lighting_type: "natural", style: ["minimal"] }`
