@@ -2,6 +2,13 @@
 
 아래 프롬프트는 `gemini-pro`가 설계 설명에 머무르지 않고, 실제로 React 기반 관리웹 코드를 생성하도록 유도하기 위한 버전이다.
 
+## Document Management Rules
+
+- 이 문서는 Gemini UI 프롬프트의 메인 통합 문서다.
+- 현재 시점의 최신 합의 사항과 전체 반영 결과는 이 문서에 누적 반영한다.
+- 점진적인 추가 요청이나 변경 배경은 날짜별 별도 문서로 관리한다.
+- 날짜별 문서는 "무엇이 추가되었는지"만 기록하고, 최종 통합 상태는 항상 이 메인 문서를 기준으로 본다.
+
 ## Prompt
 
 ```text
@@ -209,6 +216,9 @@ The generated app must understand these relationships:
 4. Entity model
 - `relation_types[].from_entity_type` must reference an entity type
 - `relation_types[].to_entity_type` must reference an entity type
+- runtime entities may carry up to 3 `category_ids`
+- runtime entity input fields should be derived from the merged attribute bindings of the selected categories
+- if multiple categories are selected for an entity, the effective attribute set should follow the configured merge strategy
 
 5. Status lifecycle
 - `active` and `deprecated` items should render differently
@@ -270,6 +280,11 @@ Generate a practical admin console with these screens:
 - relation types editor
 - from/to selectors
 - simple relation graph summary is a plus
+- add an entity-assignment preview panel:
+  - choose up to 3 categories for a hypothetical runtime entity
+  - show effective inputable attributes derived from those categories
+  - show allowed enum terms after `override.allowed_terms` is applied
+  - explain whether the result came from `union`, `intersection`, or `priority`
 
 8. Normalization screen
 - editable toggles/selectors
@@ -321,6 +336,8 @@ Reflect these rules:
 - allowed_terms only valid for enum attributes with vocabulary
 - allowed_terms must be subset of referenced vocabulary terms
 - relation from/to types must exist
+- runtime entity category count should be validated as `1..3` in any preview/editor that models actual entity assignment
+- runtime entity attributes should only be editable/selectable when allowed by the selected entity categories
 
 Use validation both:
 - globally
@@ -579,6 +596,7 @@ Important:
 - Include practical placeholder styling only when necessary
 - Use sample data where useful for mock mode
 - Keep code modular and internally consistent
+- Make entity category assignment and derived attribute availability first-class in the generated UI, not an afterthought
 
 When there are tradeoffs, choose implementation practicality over theoretical completeness.
 ```

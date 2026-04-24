@@ -3,6 +3,7 @@
 TypeScript-based taxonomy validator for an image metadata microservice concept.
 
 This repository provides:
+
 - A **single-file JSON taxonomy model** (`schema_version`, categories, attributes, vocabularies).
 - A **validation engine** for structural integrity and governance rules.
 - **Runnable examples** (valid/invalid) to verify behavior quickly.
@@ -47,11 +48,13 @@ This branch currently centers on three linked capabilities:
 - **Multi-category support** with configurable merge strategy (`union | intersection | priority`).
 
 Use this quick flow when resuming work:
+
 1. `npm run validate:valid` → verify non-blocking path (warnings allowed).
 2. `npm run validate:invalid` → verify blocking error path (expected exit code: `2`).
 3. `npm run simulate` → verify category/attribute normalization and search matching.
 
 Suggested change boundaries:
+
 - Taxonomy rule/schema changes: update `src/types.ts` + `src/validator.ts` together.
 - Query behavior/scenario changes: update `src/simulation.ts` + `examples/fashion-photos.json` together.
 - CLI/output contract changes: update `src/cli.ts` + README sections that document exit behavior.
@@ -128,6 +131,7 @@ npm run bundle:cli
 ```
 
 CLI workflow:
+
 1. Select bundle to manage.
 2. Select image to analyze.
 3. Auto-recommend metadata tags from bundle vocab/category hints.
@@ -141,18 +145,28 @@ CLI workflow:
 ## Multi-category rule design
 
 `rules.multi_category` fields:
+
 - `enabled`: multi-category feature on/off
 - `max_categories_per_photo`: allowed range `1..3`
 - `attribute_merge_strategy`: `union | intersection | priority`
 
 ### Merge strategy meaning
+
 - `union`: any category that allows an attribute makes it available.
 - `intersection`: only attributes common to all selected categories are available.
 - `priority`: first category's effective attributes are authoritative.
 
+### Entity classification behavior
+
+- Each runtime entity may also carry up to 3 `category_ids`.
+- Entity attributes are governed by the effective attribute bindings of those categories.
+- Category inheritance and `override.allowed_terms` apply to entity attributes the same way they apply to photo-level metadata.
+- In practice, entity annotation should be treated as "select up to 3 categories first, then allow only the merged attribute set for input."
+
 ## Simulation scenarios
 
 `npm run simulate` runs 4 scenarios:
+
 1. **기본 정밀 검색**: 단일 카테고리 + 모델/상의/스타일 조건.
 2. **멀티 카테고리 공통 속성 검색**: 복수 카테고리 지정 시 공통 속성(intersection) 중심 검색.
 3. **alias 정규화 검색**: category/attribute/value alias 입력을 canonical 값으로 정규화 후 검색.
@@ -163,6 +177,7 @@ The simulation enforces category inheritance-aware bindings and applies the conf
 ## Implemented validation rules
 
 ### Global
+
 - `schema_version` must be SemVer (`x.y.z`).
 - Status must be `active | deprecated`.
 - Uniqueness checks for category ids, category search paths, attribute keys, vocabulary ids.
@@ -170,6 +185,7 @@ The simulation enforces category inheritance-aware bindings and applies the conf
 - `rules.multi_category.attribute_merge_strategy` must be one of `union | intersection | priority`.
 
 ### Category tree
+
 - `parent_id` must reference an existing category (or be `null`).
 - Self-parent is forbidden.
 - Cycle detection is enforced.
@@ -177,19 +193,28 @@ The simulation enforces category inheritance-aware bindings and applies the conf
 - `search_path` cannot start/end with `/` and cannot include `//`.
 
 ### Attributes
+
 - Enum attributes must define `vocab_ref` and that vocabulary must exist.
 - Non-enum attributes must not define `vocab_ref`.
 
 ### Vocabularies
+
 - Term values must be unique inside the same vocabulary.
 - Alias must not collide with canonical term names.
 - Alias cannot map to multiple canonical terms.
 
 ### Category attribute bindings
+
 - Binding key must reference an existing attribute.
 - Warning when binding references deprecated attributes.
 - `override.allowed_terms` is only valid for enum attributes with vocabularies.
 - `override.allowed_terms` must be a subset of the referenced vocabulary terms.
+
+### Entity / relation model
+
+- Relation `from_entity_type` / `to_entity_type` must reference existing entity types.
+- Runtime entities are expected to have `category_ids` (max 3).
+- Runtime entity attributes must be allowed by the merged bindings of the entity's selected categories.
 
 ## Exit code contract
 
