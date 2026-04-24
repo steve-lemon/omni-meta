@@ -1,17 +1,22 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { TaxonomyFile, Category, Attribute } from "./types.ts";
+import type { TaxonomyFile, Category, Attribute, AttributeBinding, AttributeMergeStrategy } from "./types.ts";
 import { validateTaxonomy } from "./validator.ts";
 
 type PhotoRecord = {
   id: string;
-  category_id: string;
+  category_ids: string[];
   metadata: Record<string, string | string[]>;
 };
 
 type QueryInput = {
-  category?: string;
+  categories?: string[];
   filters: Record<string, string | string[]>;
+};
+
+type EffectiveBinding = {
+  key: string;
+  allowedTerms?: Set<string>;
 };
 
 function loadJson<T>(path: string): T {
@@ -65,24 +70,119 @@ function resolveCategoryLineage(categoryId: string, taxonomy: TaxonomyFile): Cat
   return chain;
 }
 
-function effectiveBindingKeys(categoryId: string, taxonomy: TaxonomyFile): Set<string> {
+function toAllowedTerms(binding: AttributeBinding): Set<string> | undefined {
+  const terms = binding.override?.allowed_terms;
+  if (!terms?.length) return undefined;
+  return new Set(terms.map(normalize));
+}
+
+function mergeAllowedTerms(
+  base: Set<string> | undefined,
+  next: Set<string> | undefined,
+  strategy: "union" | "intersection"
+): Set<string> | undefined {
+  if (!base) return next;
+  if (!next) return base;
+
+  if (strategy === "union") {
+    return new Set([...base, ...next]);
+  }
+
+  const out = new Set<string>();
+  for (const v of base) {
+    if (next.has(v)) out.add(v);
+  }
+  return out;
+}
+
+function bindingMapForCategory(categoryId: string, taxonomy: TaxonomyFile): Map<string, EffectiveBinding> {
   const lineage = resolveCategoryLineage(categoryId, taxonomy);
-  const keys = new Set<string>();
+  const map = new Map<string, EffectiveBinding>();
 
   for (const cat of lineage) {
-    if (!cat.inherit_attributes) keys.clear();
+    if (!cat.inherit_attributes) map.clear();
+
     for (const binding of cat.attribute_bindings) {
-      if (binding.status === "active") keys.add(binding.key);
+      if (binding.status !== "active") continue;
+
+      const key = binding.key;
+      const incomingAllowed = toAllowedTerms(binding);
+      const prev = map.get(key);
+
+      if (!prev) {
+        map.set(key, { key, allowedTerms: incomingAllowed });
+        continue;
+      }
+
+      map.set(key, {
+        key,
+        allowedTerms: mergeAllowedTerms(prev.allowedTerms, incomingAllowed, "intersection")
+      });
     }
   }
 
-  return keys;
+  return map;
+}
+
+function mergeBindingMaps(
+  maps: Map<string, EffectiveBinding>[],
+  strategy: AttributeMergeStrategy
+): Map<string, EffectiveBinding> {
+  if (maps.length === 0) return new Map();
+  if (strategy === "priority") return maps[0];
+
+  const out = new Map<string, EffectiveBinding>();
+
+  if (strategy === "union") {
+    for (const m of maps) {
+      for (const [key, binding] of m.entries()) {
+        const prev = out.get(key);
+        out.set(key, {
+          key,
+          allowedTerms: mergeAllowedTerms(prev?.allowedTerms, binding.allowedTerms, "union")
+        });
+      }
+    }
+    return out;
+  }
+
+  const sharedKeys = new Set(maps[0].keys());
+  for (const m of maps.slice(1)) {
+    for (const key of [...sharedKeys]) {
+      if (!m.has(key)) sharedKeys.delete(key);
+    }
+  }
+
+  for (const key of sharedKeys) {
+    let allowedTerms: Set<string> | undefined;
+    for (const m of maps) {
+      const binding = m.get(key);
+      if (!binding) continue;
+      allowedTerms = mergeAllowedTerms(allowedTerms, binding.allowedTerms, "intersection");
+    }
+    out.set(key, { key, allowedTerms });
+  }
+
+  return out;
+}
+
+function effectiveBindingMapForPhoto(photo: PhotoRecord, taxonomy: TaxonomyFile): Map<string, EffectiveBinding> {
+  const maxAllowed = taxonomy.rules.multi_category.max_categories_per_photo;
+  if (photo.category_ids.length === 0) {
+    throw new Error(`Photo '${photo.id}' must have at least one category.`);
+  }
+  if (photo.category_ids.length > maxAllowed) {
+    throw new Error(`Photo '${photo.id}' has ${photo.category_ids.length} categories (max ${maxAllowed}).`);
+  }
+
+  const categoryMaps = photo.category_ids.map((categoryId) => bindingMapForCategory(categoryId, taxonomy));
+  return mergeBindingMaps(categoryMaps, taxonomy.rules.multi_category.attribute_merge_strategy);
 }
 
 function normalizeQuery(query: QueryInput, taxonomy: TaxonomyFile): QueryInput {
   const out: QueryInput = { filters: {} };
-  if (query.category) {
-    out.category = canonicalizeCategory(query.category, taxonomy)?.id ?? query.category;
+  if (query.categories?.length) {
+    out.categories = query.categories.map((cat) => canonicalizeCategory(cat, taxonomy)?.id ?? cat);
   }
 
   for (const [key, value] of Object.entries(query.filters)) {
@@ -105,18 +205,32 @@ function includesAll(recordValues: string[], wanted: string[]): boolean {
 }
 
 function matchesPhoto(photo: PhotoRecord, query: QueryInput, taxonomy: TaxonomyFile): boolean {
-  if (query.category && photo.category_id !== query.category) return false;
+  if (query.categories?.length) {
+    for (const queryCategory of query.categories) {
+      if (!photo.category_ids.includes(queryCategory)) return false;
+    }
+  }
 
-  const allowedKeys = effectiveBindingKeys(photo.category_id, taxonomy);
+  const bindingMap = effectiveBindingMapForPhoto(photo, taxonomy);
 
   for (const [k, wanted] of Object.entries(query.filters)) {
-    if (!allowedKeys.has(k)) return false;
+    const binding = bindingMap.get(k);
+    if (!binding) return false;
 
     const actual = photo.metadata[k];
     if (actual === undefined) return false;
 
     const wantedArray = Array.isArray(wanted) ? wanted : [wanted];
     const actualArray = Array.isArray(actual) ? actual : [actual];
+
+    if (binding.allowedTerms && binding.allowedTerms.size > 0) {
+      for (const val of actualArray) {
+        if (!binding.allowedTerms.has(normalize(val))) return false;
+      }
+      for (const val of wantedArray) {
+        if (!binding.allowedTerms.has(normalize(val))) return false;
+      }
+    }
 
     if (!includesAll(actualArray, wantedArray)) return false;
   }
@@ -143,30 +257,32 @@ function main() {
     {
       name: "S1 - 기본 정밀 검색",
       query: {
-        category: "fashion/tops/shirt",
+        categories: ["fashion/tops/shirt"],
         filters: { model: "mina", top_type: "shirt", style: ["minimal"] }
       },
-      note: "카테고리 + 모델 + 상의 타입 + 스타일"
+      note: "단일 카테고리 + 속성 조건"
     },
     {
-      name: "S2 - alias 정규화 검색",
+      name: "S2 - 멀티 카테고리(공통 속성 intersection)",
       query: {
-        category: "셔츠",
-        filters: { person: "mina", upper_type: "tee", 스타일: ["미니멀"] }
+        categories: ["fashion/tops/shirt", "fashion/tops"],
+        filters: { style: ["minimal"], top_type: "shirt" }
       },
-      note: "category/attribute/value alias를 canonical로 정규화"
+      note: "복수 카테고리 지정 시 공통 적용 가능한 속성으로만 검색"
     },
     {
-      name: "S3 - 다중 스타일 교집합 검색",
+      name: "S3 - alias 정규화 검색",
       query: {
-        category: "fashion/tops/shirt",
-        filters: { style: ["minimal", "casual"] }
+        categories: ["셔츠"],
+        filters: { person: "mina", upper_type: "shirt", 스타일: ["미니멀"] }
       },
-      note: "multi cardinality 속성에서 복수 조건 만족"
+      note: "category/attribute/value alias 정규화"
     }
   ];
 
-  console.log("=== Fashion Model Photo Metadata Simulation ===");
+  console.log("=== Fashion Model Photo Metadata Simulation (Multi-category) ===");
+  console.log(`Merge strategy: ${taxonomy.rules.multi_category.attribute_merge_strategy}`);
+  console.log(`Max categories per photo: ${taxonomy.rules.multi_category.max_categories_per_photo}`);
   console.log(`Total photos: ${photos.length}`);
 
   for (const scenario of scenarios) {

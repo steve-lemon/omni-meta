@@ -1,7 +1,7 @@
 [
   {
     "id": "ph_001",
-    "category_id": "shirt",
+    "category_ids": ["shirt", "tops"],
     "metadata": {
       "model": "mina",
       "top_type": "shirt",
@@ -11,7 +11,7 @@
   },
   {
     "id": "ph_002",
-    "category_id": "shirt",
+    "category_ids": ["shirt", "tops", "fashion"],
     "metadata": {
       "model": "mina",
       "top_type": "tshirt",
@@ -21,7 +21,7 @@
   },
   {
     "id": "ph_003",
-    "category_id": "shirt",
+    "category_ids": ["shirt"],
     "metadata": {
       "model": "jiwon",
       "top_type": "shirt",
@@ -31,7 +31,7 @@
   },
   {
     "id": "ph_004",
-    "category_id": "tops",
+    "category_ids": ["tops", "fashion"],
     "metadata": {
       "model": "mina",
       "top_type": "knit",
@@ -40,7 +40,7 @@
   },
   {
     "id": "ph_005",
-    "category_id": "fashion",
+    "category_ids": ["fashion"],
     "metadata": {
       "model": "sohee",
       "style": ["minimal"]

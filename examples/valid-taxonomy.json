@@ -9,18 +9,57 @@
       "id": "vocab_top_type",
       "status": "active",
       "terms": [
-        { "value": "tshirt", "status": "active", "aliases": ["tee", "t-shirt", "티셔츠"] },
-        { "value": "shirt", "status": "active", "aliases": ["셔츠"] },
-        { "value": "knit", "status": "active", "aliases": ["니트", "sweater"] }
+        {
+          "value": "tshirt",
+          "status": "active",
+          "aliases": [
+            "tee",
+            "t-shirt",
+            "티셔츠"
+          ]
+        },
+        {
+          "value": "shirt",
+          "status": "active",
+          "aliases": [
+            "셔츠"
+          ]
+        },
+        {
+          "value": "knit",
+          "status": "active",
+          "aliases": [
+            "니트",
+            "sweater"
+          ]
+        }
       ]
     },
     {
       "id": "vocab_style",
       "status": "active",
       "terms": [
-        { "value": "minimal", "status": "active", "aliases": ["미니멀"] },
-        { "value": "street", "status": "active", "aliases": ["스트릿"] },
-        { "value": "casual", "status": "active", "aliases": ["캐주얼"] }
+        {
+          "value": "minimal",
+          "status": "active",
+          "aliases": [
+            "미니멀"
+          ]
+        },
+        {
+          "value": "street",
+          "status": "active",
+          "aliases": [
+            "스트릿"
+          ]
+        },
+        {
+          "value": "casual",
+          "status": "active",
+          "aliases": [
+            "캐주얼"
+          ]
+        }
       ]
     }
   ],
@@ -31,7 +70,10 @@
       "type": "string",
       "cardinality": "single",
       "status": "active",
-      "aliases": ["model_name", "person"]
+      "aliases": [
+        "model_name",
+        "person"
+      ]
     },
     {
       "key": "top_type",
@@ -40,7 +82,10 @@
       "cardinality": "single",
       "status": "active",
       "vocab_ref": "vocab_top_type",
-      "aliases": ["upper_type", "상의종류"]
+      "aliases": [
+        "upper_type",
+        "상의종류"
+      ]
     },
     {
       "key": "style",
@@ -49,7 +94,10 @@
       "cardinality": "multi",
       "status": "active",
       "vocab_ref": "vocab_style",
-      "aliases": ["mood_style", "스타일"]
+      "aliases": [
+        "mood_style",
+        "스타일"
+      ]
     },
     {
       "key": "legacy_color",
@@ -57,7 +105,9 @@
       "type": "string",
       "cardinality": "single",
       "status": "deprecated",
-      "aliases": ["color_old"]
+      "aliases": [
+        "color_old"
+      ]
     }
   ],
   "categories": [
@@ -67,11 +117,21 @@
       "parent_id": null,
       "search_path": "fashion",
       "status": "active",
-      "aliases": ["패션"],
+      "aliases": [
+        "패션"
+      ],
       "inherit_attributes": false,
       "attribute_bindings": [
-        { "key": "model", "required": false, "status": "active" },
-        { "key": "style", "required": false, "status": "active" }
+        {
+          "key": "model",
+          "required": false,
+          "status": "active"
+        },
+        {
+          "key": "style",
+          "required": false,
+          "status": "active"
+        }
       ]
     },
     {
@@ -80,10 +140,16 @@
       "parent_id": "fashion",
       "search_path": "fashion/tops",
       "status": "active",
-      "aliases": ["상의"],
+      "aliases": [
+        "상의"
+      ],
       "inherit_attributes": true,
       "attribute_bindings": [
-        { "key": "top_type", "required": true, "status": "active" }
+        {
+          "key": "top_type",
+          "required": true,
+          "status": "active"
+        }
       ]
     },
     {
@@ -92,16 +158,26 @@
       "parent_id": "tops",
       "search_path": "fashion/tops/shirt",
       "status": "active",
-      "aliases": ["셔츠"],
+      "aliases": [
+        "셔츠"
+      ],
       "inherit_attributes": true,
       "attribute_bindings": [
         {
           "key": "top_type",
           "required": true,
           "status": "active",
-          "override": { "allowed_terms": ["shirt"] }
+          "override": {
+            "allowed_terms": [
+              "shirt"
+            ]
+          }
         },
-        { "key": "legacy_color", "required": false, "status": "active" }
+        {
+          "key": "legacy_color",
+          "required": false,
+          "status": "active"
+        }
       ]
     }
   ],
@@ -125,6 +201,14 @@
     "attribute_key_unique": true,
     "search_path_unique": true,
     "child_override_parent": true,
-    "status_values": ["active", "deprecated"]
+    "status_values": [
+      "active",
+      "deprecated"
+    ],
+    "multi_category": {
+      "enabled": true,
+      "max_categories_per_photo": 3,
+      "attribute_merge_strategy": "intersection"
+    }
   }
 }

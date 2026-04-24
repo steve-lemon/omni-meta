@@ -9,9 +9,27 @@
       "id": "vocab_top_type",
       "status": "active",
       "terms": [
-        { "value": "tshirt", "status": "active", "aliases": ["tee"] },
-        { "value": "shirt", "status": "active", "aliases": ["tee"] },
-        { "value": "knit", "status": "active", "aliases": ["shirt"] }
+        {
+          "value": "tshirt",
+          "status": "active",
+          "aliases": [
+            "tee"
+          ]
+        },
+        {
+          "value": "shirt",
+          "status": "active",
+          "aliases": [
+            "tee"
+          ]
+        },
+        {
+          "value": "knit",
+          "status": "active",
+          "aliases": [
+            "shirt"
+          ]
+        }
       ]
     }
   ],
@@ -41,7 +59,11 @@
       "status": "active",
       "inherit_attributes": false,
       "attribute_bindings": [
-        { "key": "unknown_attr", "required": false, "status": "active" }
+        {
+          "key": "unknown_attr",
+          "required": false,
+          "status": "active"
+        }
       ]
     },
     {
@@ -56,7 +78,11 @@
           "key": "top_type",
           "required": true,
           "status": "active",
-          "override": { "allowed_terms": ["hoodie"] }
+          "override": {
+            "allowed_terms": [
+              "hoodie"
+            ]
+          }
         }
       ]
     }
@@ -81,6 +107,14 @@
     "attribute_key_unique": true,
     "search_path_unique": true,
     "child_override_parent": true,
-    "status_values": ["active", "deprecated"]
+    "status_values": [
+      "active",
+      "deprecated"
+    ],
+    "multi_category": {
+      "enabled": true,
+      "max_categories_per_photo": 5,
+      "attribute_merge_strategy": "merge_all"
+    }
   }
 }

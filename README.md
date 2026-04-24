@@ -6,7 +6,7 @@ This repository provides:
 - A **single-file JSON taxonomy model** (`schema_version`, categories, attributes, vocabularies).
 - A **validation engine** for structural integrity and governance rules.
 - **Runnable examples** (valid/invalid) to verify behavior quickly.
-- A **fashion model photo simulation** to test whether the taxonomy can express and search important metadata dimensions.
+- A **fashion model photo simulation** to test whether the taxonomy can express and search important metadata dimensions, including multi-category assignment.
 
 ## Concept highlights
 
@@ -15,6 +15,7 @@ This repository provides:
 - Attribute dictionary with `cardinality` (`single` | `multi`) and lifecycle `status`.
 - Shared vocabularies for enum attributes, including alias normalization.
 - Status lifecycle support (`active` | `deprecated`) across categories/attributes/terms.
+- Multi-category support (max 3 categories per photo) with flexible attribute merge strategy.
 
 ## Project structure
 
@@ -48,14 +49,26 @@ npm run simulate
 
 > This project uses Node's `--experimental-strip-types` to execute `.ts` files directly.
 
+## Multi-category rule design
+
+`rules.multi_category` fields:
+- `enabled`: multi-category feature on/off
+- `max_categories_per_photo`: allowed range `1..3`
+- `attribute_merge_strategy`: `union | intersection | priority`
+
+### Merge strategy meaning
+- `union`: any category that allows an attribute makes it available.
+- `intersection`: only attributes common to all selected categories are available.
+- `priority`: first category's effective attributes are authoritative.
+
 ## Simulation scenarios
 
 `npm run simulate` runs 3 scenarios:
-1. **기본 정밀 검색**: category + model + top_type + style 조건 검색.
-2. **alias 정규화 검색**: category/attribute/value alias 입력을 canonical 값으로 정규화 후 검색.
-3. **다중 스타일 교집합 검색**: multi-cardinality attribute(`style`)의 다중 조건 동시 만족 검색.
+1. **기본 정밀 검색**: 단일 카테고리 + 모델/상의/스타일 조건.
+2. **멀티 카테고리 공통 속성 검색**: 복수 카테고리 지정 시 공통 속성(intersection) 중심 검색.
+3. **alias 정규화 검색**: category/attribute/value alias 입력을 canonical 값으로 정규화 후 검색.
 
-The simulation additionally enforces category inheritance-aware attribute filtering through effective bindings.
+The simulation enforces category inheritance-aware bindings and applies the configured multi-category merge strategy.
 
 ## Implemented validation rules
 
@@ -63,6 +76,8 @@ The simulation additionally enforces category inheritance-aware attribute filter
 - `schema_version` must be SemVer (`x.y.z`).
 - Status must be `active | deprecated`.
 - Uniqueness checks for category ids, category search paths, attribute keys, vocabulary ids.
+- `rules.multi_category.max_categories_per_photo` must be integer in range `1..3`.
+- `rules.multi_category.attribute_merge_strategy` must be one of `union | intersection | priority`.
 
 ### Category tree
 - `parent_id` must reference an existing category (or be `null`).

@@ -2,12 +2,14 @@ import type { TaxonomyFile, ValidationIssue, Attribute, Category, Vocabulary, St
 
 const STATUS_VALUES: Status[] = ["active", "deprecated"];
 const SEMVER_REGEX = /^\d+\.\d+\.\d+$/;
+const MERGE_STRATEGIES = ["union", "intersection", "priority"] as const;
 
 export function validateTaxonomy(doc: TaxonomyFile): ValidationIssue[] {
   const issues: ValidationIssue[] = [];
 
   validateSchemaVersion(doc, issues);
   validateStatusValues(doc, issues);
+  validateRuleConfig(doc, issues);
 
   const categoriesById = new Map(doc.categories.map((c) => [c.id, c]));
   const attributesByKey = new Map(doc.attributes.map((a) => [a.key, a]));
@@ -25,6 +27,37 @@ export function validateTaxonomy(doc: TaxonomyFile): ValidationIssue[] {
   validateBindings(doc.categories, attributesByKey, vocabularyById, issues);
 
   return issues;
+}
+
+function validateRuleConfig(doc: TaxonomyFile, issues: ValidationIssue[]) {
+  const mc = doc.rules.multi_category;
+  if (!mc) {
+    issues.push({
+      level: "ERROR",
+      code: "R_MULTI_CATEGORY_MISSING",
+      message: "rules.multi_category is required",
+      path: "rules.multi_category"
+    });
+    return;
+  }
+
+  if (!Number.isInteger(mc.max_categories_per_photo) || mc.max_categories_per_photo < 1 || mc.max_categories_per_photo > 3) {
+    issues.push({
+      level: "ERROR",
+      code: "R_MULTI_CATEGORY_MAX",
+      message: "rules.multi_category.max_categories_per_photo must be an integer between 1 and 3",
+      path: "rules.multi_category.max_categories_per_photo"
+    });
+  }
+
+  if (!MERGE_STRATEGIES.includes(mc.attribute_merge_strategy)) {
+    issues.push({
+      level: "ERROR",
+      code: "R_MULTI_CATEGORY_STRATEGY",
+      message: "rules.multi_category.attribute_merge_strategy must be one of: union | intersection | priority",
+      path: "rules.multi_category.attribute_merge_strategy"
+    });
+  }
 }
 
 function validateSchemaVersion(doc: TaxonomyFile, issues: ValidationIssue[]) {
@@ -286,7 +319,7 @@ function validateBindings(
           issues.push({
             level: "ERROR",
             code: "B_OVERRIDE_NON_ENUM",
-            message: `allowed_terms override is only valid for enum attributes with vocab_ref`,
+            message: "allowed_terms override is only valid for enum attributes with vocab_ref",
             path: `categories[${catIdx}].attribute_bindings[${bindIdx}].override.allowed_terms`
           });
           continue;

@@ -1,4 +1,5 @@
 export type Status = "active" | "deprecated";
+export type AttributeMergeStrategy = "union" | "intersection" | "priority";
 
 export interface TaxonomyFile {
   schema_version: string;
@@ -73,6 +74,11 @@ export interface Rules {
   search_path_unique: boolean;
   child_override_parent: boolean;
   status_values: Status[];
+  multi_category: {
+    enabled: boolean;
+    max_categories_per_photo: number;
+    attribute_merge_strategy: AttributeMergeStrategy;
+  };
 }
 
 export type ValidationLevel = "ERROR" | "WARNING" | "INFO";
