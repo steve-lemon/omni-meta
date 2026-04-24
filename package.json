@@ -1,0 +1,10 @@
+{
+  "name": "omni-meta",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "validate:valid": "node --experimental-strip-types src/cli.ts examples/valid-taxonomy.json",
+    "validate:invalid": "node --experimental-strip-types src/cli.ts examples/invalid-taxonomy.json"
+  }
+}
