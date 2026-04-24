@@ -24,12 +24,17 @@ This repository provides:
 - `src/validator.ts`: Validation rules implementation.
 - `src/cli.ts`: CLI entry for validating a JSON file.
 - `src/simulation.ts`: Simulation runner for fashion-model-photo metadata search scenarios.
+- `src/build-bundle.ts`: Merges domain-managed standards into runtime `fashion.json`.
 - `src/opensearch-mapping.ts`: Generates OpenSearch mapping from taxonomy types.
+- `src/opensearch-index-plan.ts`: Generates OpenSearch index template + reindex plan artifacts.
 - `examples/valid-taxonomy.json`: Valid sample with one warning (deprecated attribute usage).
 - `examples/invalid-taxonomy.json`: Intentionally broken sample that triggers multiple errors.
+- `examples/fashion.json`: Runtime bundle built from domain files.
 - `examples/fashion-photos.json`: Sample photo metadata records used in simulation.
+- `examples/domains/`: Domain-managed source files used to build `fashion.json`.
 - `docs/photo-design-review.md`: Photo-driven gap analysis and taxonomy improvement proposals.
 - `docs/runtime-considerations.md`: Runtime bundle/NoSQL/OpenSearch implementation guidance.
+- `docs/nosql-migration-playbook.md`: Versioned NoSQL migration strategy and safeguards.
 
 ## Branch resume guide
 
@@ -57,6 +62,12 @@ Validate valid sample:
 npm run validate:valid
 ```
 
+Validate runtime bundle:
+
+```bash
+npm run validate:fashion
+```
+
 Validate invalid sample:
 
 ```bash
@@ -69,10 +80,22 @@ Run simulation:
 npm run simulate
 ```
 
+Build runtime bundle:
+
+```bash
+npm run build:bundle
+```
+
 Generate OpenSearch mapping:
 
 ```bash
 npm run mapping:os
+```
+
+Generate OpenSearch template + reindex plan:
+
+```bash
+npm run os:plan
 ```
 
 > This project uses Node's `--experimental-strip-types` to execute `.ts` files directly.

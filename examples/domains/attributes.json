@@ -1,0 +1,102 @@
+[
+  {
+    "key": "model",
+    "label": "Model",
+    "type": "string",
+    "cardinality": "single",
+    "status": "active",
+    "aliases": [
+      "model_name",
+      "person"
+    ]
+  },
+  {
+    "key": "top_type",
+    "label": "Top Type",
+    "type": "enum",
+    "cardinality": "single",
+    "status": "active",
+    "vocab_ref": "vocab_top_type",
+    "aliases": [
+      "upper_type",
+      "상의종류"
+    ]
+  },
+  {
+    "key": "style",
+    "label": "Style",
+    "type": "enum",
+    "cardinality": "multi",
+    "status": "active",
+    "vocab_ref": "vocab_style",
+    "aliases": [
+      "mood_style",
+      "스타일"
+    ]
+  },
+  {
+    "key": "legacy_color",
+    "label": "Legacy Color",
+    "type": "string",
+    "cardinality": "single",
+    "status": "deprecated",
+    "aliases": [
+      "color_old"
+    ]
+  },
+  {
+    "key": "garment_type",
+    "label": "Garment Type",
+    "type": "enum",
+    "cardinality": "single",
+    "status": "active",
+    "vocab_ref": "vocab_garment_type",
+    "aliases": [
+      "의류종류"
+    ]
+  },
+  {
+    "key": "footwear_type",
+    "label": "Footwear Type",
+    "type": "enum",
+    "cardinality": "single",
+    "status": "active",
+    "vocab_ref": "vocab_footwear_type",
+    "aliases": [
+      "신발종류"
+    ]
+  },
+  {
+    "key": "scene_type",
+    "label": "Scene Type",
+    "type": "enum",
+    "cardinality": "single",
+    "status": "active",
+    "vocab_ref": "vocab_scene_type",
+    "aliases": [
+      "장면유형"
+    ]
+  },
+  {
+    "key": "prop_type",
+    "label": "Prop Type",
+    "type": "enum",
+    "cardinality": "single",
+    "status": "active",
+    "vocab_ref": "vocab_prop_type",
+    "aliases": [
+      "소품유형"
+    ]
+  },
+  {
+    "key": "pose_type",
+    "label": "Pose Type",
+    "type": "enum",
+    "cardinality": "single",
+    "status": "active",
+    "vocab_ref": "vocab_pose_type",
+    "aliases": [
+      "포즈"
+    ]
+  }
+]

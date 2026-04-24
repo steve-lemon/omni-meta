@@ -390,8 +390,10 @@ function validateEntityAttributes(photo: PhotoRecord, taxonomy: TaxonomyFile): v
 }
 
 function main() {
-  const taxonomy = loadJson<TaxonomyFile>("examples/valid-taxonomy.json");
-  const photos = loadJson<PhotoRecord[]>("examples/fashion-photos.json");
+  const taxonomyPath = process.argv[2] ?? "examples/fashion.json";
+  const photosPath = process.argv[3] ?? "examples/fashion-photos.json";
+  const taxonomy = loadJson<TaxonomyFile>(taxonomyPath);
+  const photos = loadJson<PhotoRecord[]>(photosPath);
 
   const issues = validateTaxonomy(taxonomy);
   const errors = issues.filter((i) => i.level === "ERROR");

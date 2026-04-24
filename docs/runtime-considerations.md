@@ -9,7 +9,7 @@ This document reflects production-oriented constraints for metadata governance, 
 - Include a bundle checksum/version to support safe cache invalidation when standards change.
 
 Recommended startup flow:
-1. Load `fashion.json`.
+1. Build and publish `fashion.json` (`npm run build:bundle` in CI).
 2. Validate taxonomy/model integrity (`validateTaxonomy`).
 3. Build fast lookup maps (category by id, attribute by key, vocab by id).
 4. Expose immutable registry to API/indexer workers.
@@ -53,3 +53,11 @@ npm run mapping:os
 ```
 
 The generator preserves attribute datatype/cardinality intent and emits nested structures for entity-graph queries.
+
+For rollout automation, use:
+
+```bash
+npm run os:plan
+```
+
+This emits index template and reindex plan artifacts under `examples/opensearch/`.
