@@ -1,0 +1,49 @@
+[
+  {
+    "id": "ph_001",
+    "category_id": "shirt",
+    "metadata": {
+      "model": "mina",
+      "top_type": "shirt",
+      "style": ["minimal", "casual"],
+      "legacy_color": "white"
+    }
+  },
+  {
+    "id": "ph_002",
+    "category_id": "shirt",
+    "metadata": {
+      "model": "mina",
+      "top_type": "tshirt",
+      "style": ["street"],
+      "legacy_color": "black"
+    }
+  },
+  {
+    "id": "ph_003",
+    "category_id": "shirt",
+    "metadata": {
+      "model": "jiwon",
+      "top_type": "shirt",
+      "style": ["minimal"],
+      "legacy_color": "beige"
+    }
+  },
+  {
+    "id": "ph_004",
+    "category_id": "tops",
+    "metadata": {
+      "model": "mina",
+      "top_type": "knit",
+      "style": ["casual"]
+    }
+  },
+  {
+    "id": "ph_005",
+    "category_id": "fashion",
+    "metadata": {
+      "model": "sohee",
+      "style": ["minimal"]
+    }
+  }
+]

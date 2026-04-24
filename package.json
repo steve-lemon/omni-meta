@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "validate:valid": "node --experimental-strip-types src/cli.ts examples/valid-taxonomy.json",
-    "validate:invalid": "node --experimental-strip-types src/cli.ts examples/invalid-taxonomy.json"
+    "validate:invalid": "node --experimental-strip-types src/cli.ts examples/invalid-taxonomy.json",
+    "simulate": "node --experimental-strip-types src/simulation.ts"
   }
 }

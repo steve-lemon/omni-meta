@@ -6,6 +6,7 @@ This repository provides:
 - A **single-file JSON taxonomy model** (`schema_version`, categories, attributes, vocabularies).
 - A **validation engine** for structural integrity and governance rules.
 - **Runnable examples** (valid/invalid) to verify behavior quickly.
+- A **fashion model photo simulation** to test whether the taxonomy can express and search important metadata dimensions.
 
 ## Concept highlights
 
@@ -20,8 +21,10 @@ This repository provides:
 - `src/types.ts`: Type definitions for taxonomy document and validation issues.
 - `src/validator.ts`: Validation rules implementation.
 - `src/cli.ts`: CLI entry for validating a JSON file.
+- `src/simulation.ts`: Simulation runner for fashion-model-photo metadata search scenarios.
 - `examples/valid-taxonomy.json`: Valid sample with one warning (deprecated attribute usage).
 - `examples/invalid-taxonomy.json`: Intentionally broken sample that triggers multiple errors.
+- `examples/fashion-photos.json`: Sample photo metadata records used in simulation.
 
 ## Run validation (no install required)
 
@@ -37,7 +40,22 @@ Validate invalid sample:
 npm run validate:invalid
 ```
 
+Run simulation:
+
+```bash
+npm run simulate
+```
+
 > This project uses Node's `--experimental-strip-types` to execute `.ts` files directly.
+
+## Simulation scenarios
+
+`npm run simulate` runs 3 scenarios:
+1. **기본 정밀 검색**: category + model + top_type + style 조건 검색.
+2. **alias 정규화 검색**: category/attribute/value alias 입력을 canonical 값으로 정규화 후 검색.
+3. **다중 스타일 교집합 검색**: multi-cardinality attribute(`style`)의 다중 조건 동시 만족 검색.
+
+The simulation additionally enforces category inheritance-aware attribute filtering through effective bindings.
 
 ## Implemented validation rules
 
