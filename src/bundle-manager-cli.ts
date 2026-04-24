@@ -23,6 +23,28 @@ type ValidationSummary = {
   info: number;
 };
 
+type BundleQualitySummary = {
+  deprecatedCategories: number;
+  deprecatedAttributes: number;
+  deprecatedVocabularies: number;
+  deprecatedTerms: number;
+  multiCardinalityAttributes: number;
+  inheritedCategories: number;
+  stringAttributes: number;
+  numberAttributes: number;
+  booleanAttributes: number;
+  enumAttributes: number;
+  colorAttributes: number;
+  dateAttributes: number;
+  colorVocabularies: number;
+};
+
+type ValidationIssueWithLine = ValidationIssue & {
+  line?: number;
+  fixPath?: string;
+  fixLine?: number;
+};
+
 function loadEnvFile(path = ".env"): number {
   const full = resolve(process.cwd(), path);
   if (!existsSync(full)) return 0;
@@ -74,7 +96,162 @@ function saveBundle(path: string, bundle: TaxonomyFile) {
   log("INFO", "Bundle saved", { path: full, schema_version: bundle.schema_version });
 }
 
-function summarizeIssues(issues: ValidationIssue[]): ValidationSummary {
+function buildJsonLineMap(raw: string): Map<string, number> {
+  const linesByPath = new Map<string, number>();
+  let index = 0;
+  let line = 1;
+
+  const bumpLine = (char: string) => {
+    if (char === "\n") line += 1;
+  };
+
+  const currentChar = () => raw[index];
+
+  const skipWhitespace = () => {
+    while (index < raw.length) {
+      const char = raw[index];
+      if (char !== " " && char !== "\n" && char !== "\r" && char !== "\t") break;
+      bumpLine(char);
+      index += 1;
+    }
+  };
+
+  const recordPath = (path: string) => {
+    if (path && !linesByPath.has(path)) linesByPath.set(path, line);
+  };
+
+  const readString = () => {
+    let value = "";
+    index += 1;
+    while (index < raw.length) {
+      const char = raw[index];
+      if (char === "\\") {
+        value += char;
+        index += 1;
+        if (index < raw.length) {
+          value += raw[index];
+          index += 1;
+        }
+        continue;
+      }
+      if (char === "\"") {
+        index += 1;
+        return value;
+      }
+      value += char;
+      index += 1;
+    }
+    return value;
+  };
+
+  const readLiteral = () => {
+    while (index < raw.length) {
+      const char = raw[index];
+      if (char === "," || char === "}" || char === "]" || char === " " || char === "\n" || char === "\r" || char === "\t") {
+        break;
+      }
+      index += 1;
+    }
+  };
+
+  const parseValue = (path: string) => {
+    skipWhitespace();
+    recordPath(path);
+    const char = currentChar();
+    if (char === "{") {
+      parseObject(path);
+      return;
+    }
+    if (char === "[") {
+      parseArray(path);
+      return;
+    }
+    if (char === "\"") {
+      readString();
+      return;
+    }
+    readLiteral();
+  };
+
+  const parseObject = (path: string) => {
+    index += 1;
+    skipWhitespace();
+    if (currentChar() === "}") {
+      index += 1;
+      return;
+    }
+
+    while (index < raw.length) {
+      skipWhitespace();
+      const key = readString();
+      skipWhitespace();
+      if (currentChar() === ":") index += 1;
+      const childPath = path ? `${path}.${key}` : key;
+      parseValue(childPath);
+      skipWhitespace();
+      const char = currentChar();
+      if (char === ",") {
+        index += 1;
+        continue;
+      }
+      if (char === "}") {
+        index += 1;
+        return;
+      }
+    }
+  };
+
+  const parseArray = (path: string) => {
+    index += 1;
+    skipWhitespace();
+    if (currentChar() === "]") {
+      index += 1;
+      return;
+    }
+
+    let itemIndex = 0;
+    while (index < raw.length) {
+      const childPath = `${path}[${itemIndex}]`;
+      parseValue(childPath);
+      itemIndex += 1;
+      skipWhitespace();
+      const char = currentChar();
+      if (char === ",") {
+        index += 1;
+        continue;
+      }
+      if (char === "]") {
+        index += 1;
+        return;
+      }
+    }
+  };
+
+  parseValue("");
+  return linesByPath;
+}
+
+function inferFixPath(issue: ValidationIssue): string | undefined {
+  if (issue.code === "A_ENUM_COLOR_VOCAB" && issue.path?.endsWith(".vocab_ref")) {
+    return issue.path.replace(/\.vocab_ref$/, ".type");
+  }
+  return undefined;
+}
+
+function attachIssueLineNumbers(raw: string, issues: ValidationIssue[]): ValidationIssueWithLine[] {
+  const lineMap = buildJsonLineMap(raw);
+  return issues.map((issue) => {
+    const fixPath = inferFixPath(issue);
+    return {
+      ...issue,
+      line: issue.path ? lineMap.get(issue.path) : undefined,
+      fixPath,
+      fixLine: fixPath ? lineMap.get(fixPath) : undefined
+    };
+  });
+}
+
+function summarizeIssues(issues: ValidationIssueWithLine[]): ValidationSummary {
   return {
     total: issues.length,
     errors: issues.filter((issue) => issue.level === "ERROR").length,
@@ -83,7 +260,77 @@ function summarizeIssues(issues: ValidationIssue[]): ValidationSummary {
   };
 }
 
-function groupIssuesByLevel(issues: ValidationIssue[]): Record<ValidationLevel, ValidationIssue[]> {
+function summarizeBundleQuality(bundle: TaxonomyFile): BundleQualitySummary {
+  return {
+    deprecatedCategories: bundle.categories.filter((item) => item.status === "deprecated").length,
+    deprecatedAttributes: bundle.attributes.filter((item) => item.status === "deprecated").length,
+    deprecatedVocabularies: bundle.vocabularies.filter((item) => item.status === "deprecated").length,
+    deprecatedTerms: bundle.vocabularies.reduce(
+      (count, vocab) => count + vocab.terms.filter((term) => term.status === "deprecated").length,
+      0
+    ),
+    multiCardinalityAttributes: bundle.attributes.filter((item) => item.cardinality === "multi").length,
+    inheritedCategories: bundle.categories.filter((item) => item.inherit_attributes).length,
+    stringAttributes: bundle.attributes.filter((item) => item.type === "string").length,
+    numberAttributes: bundle.attributes.filter((item) => item.type === "number").length,
+    booleanAttributes: bundle.attributes.filter((item) => item.type === "boolean").length,
+    enumAttributes: bundle.attributes.filter((item) => item.type === "enum").length,
+    colorAttributes: bundle.attributes.filter((item) => item.type === "color").length,
+    dateAttributes: bundle.attributes.filter((item) => item.type === "date").length,
+    colorVocabularies: bundle.vocabularies.filter((item) => item.type === "color").length
+  };
+}
+
+function formatFileLine(bundlePath: string, line?: number) {
+  return line ? `${bundlePath}:${line}` : undefined;
+}
+
+function summarizeIssueInKorean(issue: ValidationIssueWithLine): string | undefined {
+  if (issue.code === "A_ENUM_COLOR_VOCAB") {
+    return "color vocabulary를 참조 중이므로 이 attribute는 `enum`이 아니라 `color` 타입이어야 합니다.";
+  }
+  if (issue.code === "A_COLOR_NO_VOCAB") {
+    return "color attribute에는 color vocabulary를 가리키는 `vocab_ref`가 필요합니다.";
+  }
+  if (issue.code === "A_VOCAB_NOT_FOUND") {
+    return "`vocab_ref`가 존재하지 않는 vocabulary를 가리키고 있습니다.";
+  }
+  if (issue.code === "V_COLOR_CODE_NON_COLOR") {
+    return "일반 vocabulary에 `color_code`가 들어 있어 타입 정의와 term 데이터가 어긋나 있습니다.";
+  }
+  return undefined;
+}
+
+function buildQualityHints(quality: BundleQualitySummary, hasErrors: boolean): string[] {
+  const hints: string[] = [];
+  if (quality.colorVocabularies > 0 && quality.colorAttributes === 0) {
+    hints.push("schema mismatch detected: color vocabulary는 있지만 color attribute가 없습니다. color-related schema 연결을 점검하세요.");
+  }
+  if (
+    !hasErrors &&
+    quality.deprecatedCategories + quality.deprecatedAttributes + quality.deprecatedVocabularies + quality.deprecatedTerms === 0
+  ) {
+    hints.push("deprecated 항목이 없습니다. 초기 설계 단계의 깨끗한 번들 상태로 보입니다.");
+  }
+  return hints;
+}
+
+function printQualitySnapshot(quality: BundleQualitySummary, hasErrors: boolean) {
+  console.log("\n[Quality Snapshot]");
+  console.log(
+    `- deprecated: categories=${quality.deprecatedCategories}, attributes=${quality.deprecatedAttributes}, vocabularies=${quality.deprecatedVocabularies}, terms=${quality.deprecatedTerms}`
+  );
+  console.log(
+    `- attribute types: string=${quality.stringAttributes}, number=${quality.numberAttributes}, boolean=${quality.booleanAttributes}, enum=${quality.enumAttributes}, color=${quality.colorAttributes}, date=${quality.dateAttributes}`
+  );
+  console.log(`- structure: multi_attributes=${quality.multiCardinalityAttributes}, inherited_categories=${quality.inheritedCategories}`);
+  console.log(`- color vocabularies: ${quality.colorVocabularies}`);
+  for (const hint of buildQualityHints(quality, hasErrors)) {
+    console.log(`- hint: ${hint}`);
+  }
+}
+
+function groupIssuesByLevel(issues: ValidationIssueWithLine[]): Record<ValidationLevel, ValidationIssueWithLine[]> {
   return {
     ERROR: issues.filter((issue) => issue.level === "ERROR"),
     WARNING: issues.filter((issue) => issue.level === "WARNING"),
@@ -91,8 +338,9 @@ function groupIssuesByLevel(issues: ValidationIssue[]): Record<ValidationLevel, 
   };
 }
 
-function collectImprovementSuggestions(issues: ValidationIssue[]): string[] {
+function collectImprovementSuggestions(bundlePath: string, issues: ValidationIssueWithLine[]): string[] {
   const suggestions = new Set<string>();
+  const codes = new Set(issues.map((issue) => issue.code));
   for (const issue of issues) {
     if (issue.code.startsWith("R_SCHEMA")) suggestions.add("`schema_version`을 `x.y.z` 형식으로 맞추세요.");
     if (issue.code.startsWith("R_STATUS")) suggestions.add("모든 `status` 값을 `active | deprecated` 중 하나로 정리하세요.");
@@ -101,7 +349,25 @@ function collectImprovementSuggestions(issues: ValidationIssue[]): string[] {
       suggestions.add("카테고리 트리의 `parent_id` 연결을 다시 점검해 순환과 잘못된 참조를 없애세요.");
     }
     if (issue.code.startsWith("C_PATH")) suggestions.add("`search_path`는 선행/후행 `/` 없이, 중복 슬래시 없이 고유하게 유지하세요.");
-    if (issue.code.startsWith("A_VOCAB") || issue.code.startsWith("A_ENUM") || issue.code.startsWith("A_COLOR")) {
+    if (issue.code === "A_ENUM_COLOR_VOCAB") {
+      suggestions.add(
+        issue.fixPath && issue.fixLine
+          ? `\`${issue.fixPath}\` (${formatFileLine(bundlePath, issue.fixLine)}) 값을 \`"color"\`로 변경하세요.`
+          : "color vocabulary를 참조하는 attribute는 `type: \"color\"`로 변경하세요."
+      );
+    }
+    if (issue.code === "A_COLOR_NO_VOCAB") {
+      suggestions.add("color attribute에는 color vocabulary를 연결하는 `vocab_ref`를 반드시 지정하세요.");
+    }
+    if (issue.code === "A_VOCAB_NOT_FOUND") {
+      suggestions.add("`vocab_ref`가 실제 vocabulary id를 가리키는지 확인하고 오타나 누락된 vocabulary를 정리하세요.");
+    }
+    if (
+      !codes.has("A_ENUM_COLOR_VOCAB") &&
+      !codes.has("A_COLOR_NO_VOCAB") &&
+      !codes.has("A_VOCAB_NOT_FOUND") &&
+      (issue.code.startsWith("A_VOCAB") || issue.code.startsWith("A_ENUM") || issue.code.startsWith("A_COLOR"))
+    ) {
       suggestions.add("속성 타입과 `vocab_ref` 관계를 다시 맞추고, color 속성은 color vocabulary만 참조하게 하세요.");
     }
     if (issue.code.startsWith("A_NON_ENUM")) suggestions.add("`enum`/`color`가 아닌 속성에서는 `vocab_ref`를 제거하세요.");
@@ -116,10 +382,11 @@ function collectImprovementSuggestions(issues: ValidationIssue[]): string[] {
   return [...suggestions];
 }
 
-function printValidationReport(bundlePath: string, bundle: TaxonomyFile, issues: ValidationIssue[]) {
+function printValidationReport(bundlePath: string, bundle: TaxonomyFile, issues: ValidationIssueWithLine[]) {
   const summary = summarizeIssues(issues);
+  const quality = summarizeBundleQuality(bundle);
   const grouped = groupIssuesByLevel(issues);
-  const suggestions = collectImprovementSuggestions(issues);
+  const suggestions = collectImprovementSuggestions(bundlePath, issues);
 
   console.log("\n=== Bundle Validation Report ===");
   console.log(`Bundle: ${bundlePath}`);
@@ -131,35 +398,63 @@ function printValidationReport(bundlePath: string, bundle: TaxonomyFile, issues:
     `Summary: total=${summary.total}, errors=${summary.errors}, warnings=${summary.warnings}, info=${summary.info}`
   );
 
+  printQualitySnapshot(quality, summary.errors > 0);
+
   if (issues.length === 0) {
     console.log("\n상태: 검증 통과. 즉시 사용 가능한 번들입니다.");
+    console.log("Result: PASS");
     return;
   }
 
   if (grouped.ERROR.length > 0) {
     console.log("\n[Blocking Errors]");
     grouped.ERROR.forEach((issue, index) => {
-      const path = issue.path ? ` @ ${issue.path}` : "";
-      console.log(`${index + 1}. ${issue.code}${path}`);
+      console.log(`${index + 1}. ${issue.code}`);
+      if (issue.path) {
+        const detectedAt = formatFileLine(bundlePath, issue.line);
+        console.log(`   Detected at: ${issue.path}${detectedAt ? ` (${detectedAt})` : ""}`);
+      }
+      if (issue.fixPath) {
+        const suggestedFixAt = formatFileLine(bundlePath, issue.fixLine);
+        console.log(`   Suggested fix at: ${issue.fixPath}${suggestedFixAt ? ` (${suggestedFixAt})` : ""}`);
+      }
       console.log(`   ${issue.message}`);
+      const koreanSummary = summarizeIssueInKorean(issue);
+      if (koreanSummary) {
+        console.log(`   요약: ${koreanSummary}`);
+      }
     });
   }
 
   if (grouped.WARNING.length > 0) {
     console.log("\n[Warnings]");
     grouped.WARNING.forEach((issue, index) => {
-      const path = issue.path ? ` @ ${issue.path}` : "";
-      console.log(`${index + 1}. ${issue.code}${path}`);
+      console.log(`${index + 1}. ${issue.code}`);
+      if (issue.path) {
+        const detectedAt = formatFileLine(bundlePath, issue.line);
+        console.log(`   Detected at: ${issue.path}${detectedAt ? ` (${detectedAt})` : ""}`);
+      }
       console.log(`   ${issue.message}`);
+      const koreanSummary = summarizeIssueInKorean(issue);
+      if (koreanSummary) {
+        console.log(`   요약: ${koreanSummary}`);
+      }
     });
   }
 
   if (grouped.INFO.length > 0) {
     console.log("\n[Info]");
     grouped.INFO.forEach((issue, index) => {
-      const path = issue.path ? ` @ ${issue.path}` : "";
-      console.log(`${index + 1}. ${issue.code}${path}`);
+      console.log(`${index + 1}. ${issue.code}`);
+      if (issue.path) {
+        const detectedAt = formatFileLine(bundlePath, issue.line);
+        console.log(`   Detected at: ${issue.path}${detectedAt ? ` (${detectedAt})` : ""}`);
+      }
       console.log(`   ${issue.message}`);
+      const koreanSummary = summarizeIssueInKorean(issue);
+      if (koreanSummary) {
+        console.log(`   요약: ${koreanSummary}`);
+      }
     });
   }
 
@@ -170,10 +465,28 @@ function printValidationReport(bundlePath: string, bundle: TaxonomyFile, issues:
     });
   }
 
+  const patchHints = issues
+    .filter((issue) => issue.code === "A_ENUM_COLOR_VOCAB" && issue.fixPath && issue.fixLine)
+    .map((issue) => ({
+      path: issue.fixPath!,
+      location: formatFileLine(bundlePath, issue.fixLine),
+      replacement: '"type": "color"'
+    }));
+
+  if (patchHints.length > 0) {
+    console.log("\n[Suggested Patch]");
+    patchHints.forEach((hint, index) => {
+      console.log(`${index + 1}. ${hint.path}${hint.location ? ` (${hint.location})` : ""}`);
+      console.log(`   ${hint.replacement}`);
+    });
+  }
+
   if (summary.errors > 0) {
     console.log("\n상태: blocking error가 있어 수정 후 다시 검증이 필요합니다.");
+    console.log("Result: FAIL");
   } else {
     console.log("\n상태: blocking error는 없고, warning 수준의 정리만 남았습니다.");
+    console.log("Result: PASS_WITH_WARNINGS");
   }
 }
 
@@ -341,8 +654,10 @@ function promptBundlePathFromArgs(): string | undefined {
 }
 
 function validateBundleForCli(bundlePath: string) {
+  const full = resolve(process.cwd(), bundlePath);
+  const raw = readFileSync(full, "utf8");
   const bundle = loadBundle(bundlePath);
-  const issues = validateTaxonomy(bundle);
+  const issues = attachIssueLineNumbers(raw, validateTaxonomy(bundle));
   log("INFO", "Bundle validation completed", {
     bundlePath,
     total_issues: issues.length,
