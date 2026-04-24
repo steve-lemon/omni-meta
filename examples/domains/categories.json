@@ -21,6 +21,16 @@
         "status": "active"
       },
       {
+        "key": "photographer_email",
+        "required": false,
+        "status": "active"
+      },
+      {
+        "key": "source_url",
+        "required": false,
+        "status": "active"
+      },
+      {
         "key": "dominant_color",
         "required": false,
         "status": "active"

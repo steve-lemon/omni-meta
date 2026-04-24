@@ -13,7 +13,7 @@ This repository provides:
 
 - Category tree with `id` + `parent_id` for internal references.
 - Search-oriented path field `search_path` (separated from internal id linkage).
-- Attribute dictionary with `cardinality` (`single` | `multi`), lifecycle `status`, and optional UI hints like `priority`, `icon`, `hint`.
+- Attribute dictionary with `cardinality` (`single` | `multi`), lifecycle `status`, optional UI hints like `priority`, `icon`, `hint`, and scalar types including `date`, `email`, `url`.
 - Shared vocabularies for enum/color attributes, including alias normalization and optional color swatches.
 - Status lifecycle support (`active` | `deprecated`) across categories/attributes/terms.
 - Multi-category support (max 3 categories per photo) with flexible attribute merge strategy.
@@ -27,7 +27,7 @@ This repository provides:
 - `src/simulation.ts`: Simulation runner for fashion-model-photo metadata search scenarios.
 - `src/build-bundle.ts`: Merges domain-managed standards into runtime `fashion.json`.
 - `src/bundle-manager-cli.ts`: Interactive CLI for bundle/image analysis-feedback-improvement loop.
-- `src/opensearch-mapping.ts`: Generates OpenSearch mapping from taxonomy types, including `date`.
+- `src/opensearch-mapping.ts`: Generates OpenSearch mapping from taxonomy types, including `date` plus keyword-backed scalar types like `email` and `url`.
 - `src/opensearch-index-plan.ts`: Generates OpenSearch index template + reindex plan artifacts.
 - `examples/valid-taxonomy.json`: Valid sample with one warning (deprecated attribute usage).
 - `examples/invalid-taxonomy.json`: Intentionally broken sample that triggers multiple errors.
@@ -204,6 +204,7 @@ The simulation enforces category inheritance-aware bindings and applies the conf
 - Color attributes must define `vocab_ref` and reference a color vocabulary.
 - Enum attributes must not reference a color vocabulary.
 - Attribute types other than `enum` / `color` must not define `vocab_ref`.
+- `email` and `url` attributes are treated as scalar keyword-style fields and must not define `vocab_ref`.
 - Optional `priority` must be a non-negative integer.
 
 ### Vocabularies

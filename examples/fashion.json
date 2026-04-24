@@ -275,6 +275,24 @@
       "hint": "Use ISO 8601 when the original capture timestamp is known."
     },
     {
+      "key": "photographer_email",
+      "label": "Photographer Email",
+      "type": "email",
+      "cardinality": "single",
+      "status": "active",
+      "icon": "mail",
+      "hint": "Store the photographer's contact email in a normalized address format."
+    },
+    {
+      "key": "source_url",
+      "label": "Source URL",
+      "type": "url",
+      "cardinality": "single",
+      "status": "active",
+      "icon": "link",
+      "hint": "Store the canonical source or licensing URL for the photo asset."
+    },
+    {
       "key": "legacy_color",
       "label": "Legacy Color",
       "type": "string",
@@ -359,6 +377,16 @@
         },
         {
           "key": "captured_at",
+          "required": false,
+          "status": "active"
+        },
+        {
+          "key": "photographer_email",
+          "required": false,
+          "status": "active"
+        },
+        {
+          "key": "source_url",
           "required": false,
           "status": "active"
         },

@@ -55,7 +55,7 @@ export interface VocabularyTerm {
 export interface Attribute {
   key: string;
   label: string;
-  type: "string" | "number" | "boolean" | "enum" | "color" | "date";
+  type: "string" | "number" | "boolean" | "enum" | "color" | "date" | "email" | "url";
   cardinality: "single" | "multi";
   status: Status;
   priority?: number;

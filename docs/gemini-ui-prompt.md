@@ -135,7 +135,7 @@ interface VocabularyTerm {
 interface Attribute {
   key: string;
   label: string;
-  type: "string" | "number" | "boolean" | "enum" | "color" | "date";
+  type: "string" | "number" | "boolean" | "enum" | "color" | "date" | "email" | "url";
   cardinality: "single" | "multi";
   status: Status;
   priority?: number;
@@ -204,6 +204,7 @@ The generated app must understand these relationships:
 - enum attributes must use `vocab_ref`
 - color attributes must use `vocab_ref` and reference a color vocabulary
 - attributes other than `enum` or `color` must not use `vocab_ref`
+- `email` and `url` should be treated as scalar text fields with format-aware labels/help, not vocabulary-backed enums
 - vocabulary usage should be visible from the vocabulary detail panel
 - color vocabularies should surface term swatches from `color_code`
 
@@ -354,6 +355,7 @@ Reflect these rules:
 - enum attribute requires vocab_ref
 - color attribute requires vocab_ref and a color vocabulary
 - attributes other than enum/color must not define vocab_ref
+- `email` / `url` are scalar field types and should not offer vocabulary selectors
 - attribute priority must be a non-negative integer when provided
 - vocabulary term values unique inside each vocabulary
 - alias must not collide with canonical term in same vocabulary
@@ -499,6 +501,24 @@ Use this sample bundle for examples, mock data, preview UI, and code samples:
       "hint": "Use ISO 8601 when the original capture timestamp is known."
     },
     {
+      "key": "photographer_email",
+      "label": "Photographer Email",
+      "type": "email",
+      "cardinality": "single",
+      "status": "active",
+      "icon": "mail",
+      "hint": "Store the photographer's contact email in a normalized address format."
+    },
+    {
+      "key": "source_url",
+      "label": "Source URL",
+      "type": "url",
+      "cardinality": "single",
+      "status": "active",
+      "icon": "link",
+      "hint": "Store the canonical source or licensing URL for the photo asset."
+    },
+    {
       "key": "legacy_color",
       "label": "Legacy Color",
       "type": "string",
@@ -527,6 +547,8 @@ Use this sample bundle for examples, mock data, preview UI, and code samples:
       "inherit_attributes": false,
       "attribute_bindings": [
         { "key": "captured_at", "required": false, "status": "active" },
+        { "key": "photographer_email", "required": false, "status": "active" },
+        { "key": "source_url", "required": false, "status": "active" },
         { "key": "dominant_color", "required": false, "status": "active" },
         { "key": "model", "required": false, "status": "active" },
         { "key": "style", "required": false, "status": "active" }
