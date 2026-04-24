@@ -1,21 +1,46 @@
 export type Status = "active" | "deprecated";
 export type AttributeMergeStrategy = "union" | "intersection" | "priority";
+export type ValidationLevel = "ERROR" | "WARNING" | "INFO";
 
 export interface TaxonomyFile {
   schema_version: string;
   meta: {
     name: string;
+    description?: string;
     updated_at: string;
   };
   vocabularies: Vocabulary[];
   attributes: Attribute[];
   categories: Category[];
+  entity_model?: EntityModel;
   normalization: Normalization;
   rules: Rules;
 }
 
+export interface EntityModel {
+  entity_types: EntityTypeDefinition[];
+  relation_types: RelationTypeDefinition[];
+}
+
+export interface EntityTypeDefinition {
+  id: string;
+  label: string;
+  status: Status;
+  aliases?: string[];
+}
+
+export interface RelationTypeDefinition {
+  id: string;
+  label: string;
+  status: Status;
+  from_entity_type: string;
+  to_entity_type: string;
+  aliases?: string[];
+}
+
 export interface Vocabulary {
   id: string;
+  type?: "string" | "color";
   status: Status;
   terms: VocabularyTerm[];
 }
@@ -24,16 +49,20 @@ export interface VocabularyTerm {
   value: string;
   status: Status;
   aliases?: string[];
+  color_code?: string;
 }
 
 export interface Attribute {
   key: string;
   label: string;
-  type: "string" | "number" | "boolean" | "enum";
+  type: "string" | "number" | "boolean" | "enum" | "color" | "date" | "email" | "url";
   cardinality: "single" | "multi";
   status: Status;
+  priority?: number;
+  icon?: string;
   aliases?: string[];
   vocab_ref?: string;
+  hint?: string;
 }
 
 export interface AttributeBinding {
@@ -60,7 +89,9 @@ export interface Normalization {
   case_insensitive: boolean;
   trim_whitespace: boolean;
   unicode_normalization: "NFC" | "NFD" | "NFKC" | "NFKD";
-  alias_resolution_order: Array<"attribute_alias" | "category_alias" | "vocabulary_term_alias">;
+  alias_resolution_order: Array<
+    "attribute_alias" | "category_alias" | "vocabulary_term_alias"
+  >;
   deprecated_policy: {
     accept_input: boolean;
     store_as_canonical_if_possible: boolean;
@@ -80,8 +111,6 @@ export interface Rules {
     attribute_merge_strategy: AttributeMergeStrategy;
   };
 }
-
-export type ValidationLevel = "ERROR" | "WARNING" | "INFO";
 
 export interface ValidationIssue {
   level: ValidationLevel;

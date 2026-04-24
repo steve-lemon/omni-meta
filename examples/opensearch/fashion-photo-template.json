@@ -1,0 +1,134 @@
+{
+  "index_patterns": [
+    "fashion-photo-*"
+  ],
+  "priority": 100,
+  "template": {
+    "settings": {
+      "index": {
+        "number_of_shards": 1,
+        "number_of_replicas": 1,
+        "refresh_interval": "1s"
+      }
+    },
+    "mappings": {
+      "dynamic": "strict",
+      "properties": {
+        "photo_id": {
+          "type": "keyword"
+        },
+        "category_ids": {
+          "type": "keyword"
+        },
+        "taxonomy_version": {
+          "type": "keyword"
+        },
+        "metadata": {
+          "properties": {
+            "model": {
+              "type": "keyword",
+              "ignore_above": 512,
+              "meta": {
+                "cardinality": "single"
+              }
+            },
+            "top_type": {
+              "type": "keyword",
+              "ignore_above": 512,
+              "meta": {
+                "cardinality": "single"
+              }
+            },
+            "style": {
+              "type": "keyword",
+              "ignore_above": 512,
+              "meta": {
+                "cardinality": "multi"
+              }
+            },
+            "dominant_color": {
+              "type": "keyword",
+              "ignore_above": 512,
+              "meta": {
+                "cardinality": "single"
+              }
+            },
+            "captured_at": {
+              "type": "date",
+              "meta": {
+                "cardinality": "single"
+              }
+            },
+            "garment_type": {
+              "type": "keyword",
+              "ignore_above": 512,
+              "meta": {
+                "cardinality": "single"
+              }
+            },
+            "footwear_type": {
+              "type": "keyword",
+              "ignore_above": 512,
+              "meta": {
+                "cardinality": "single"
+              }
+            },
+            "scene_type": {
+              "type": "keyword",
+              "ignore_above": 512,
+              "meta": {
+                "cardinality": "single"
+              }
+            },
+            "prop_type": {
+              "type": "keyword",
+              "ignore_above": 512,
+              "meta": {
+                "cardinality": "single"
+              }
+            },
+            "pose_type": {
+              "type": "keyword",
+              "ignore_above": 512,
+              "meta": {
+                "cardinality": "single"
+              }
+            }
+          }
+        },
+        "entities": {
+          "type": "nested",
+          "properties": {
+            "id": {
+              "type": "keyword"
+            },
+            "type": {
+              "type": "keyword"
+            },
+            "category_ids": {
+              "type": "keyword"
+            },
+            "attributes": {
+              "type": "object",
+              "dynamic": true
+            }
+          }
+        },
+        "relations": {
+          "type": "nested",
+          "properties": {
+            "type": {
+              "type": "keyword"
+            },
+            "from_entity_id": {
+              "type": "keyword"
+            },
+            "to_entity_id": {
+              "type": "keyword"
+            }
+          }
+        }
+      }
+    }
+  }
+}

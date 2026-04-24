@@ -1,0 +1,62 @@
+{
+  "entity_types": [
+    {
+      "id": "model",
+      "label": "Model Entity",
+      "status": "active",
+      "aliases": [
+        "person"
+      ]
+    },
+    {
+      "id": "dress",
+      "label": "Dress Entity",
+      "status": "active"
+    },
+    {
+      "id": "footwear",
+      "label": "Footwear Entity",
+      "status": "active"
+    },
+    {
+      "id": "prop",
+      "label": "Prop Entity",
+      "status": "active"
+    },
+    {
+      "id": "place",
+      "label": "Place Entity",
+      "status": "active"
+    }
+  ],
+  "relation_types": [
+    {
+      "id": "wears",
+      "label": "Wears",
+      "status": "active",
+      "from_entity_type": "model",
+      "to_entity_type": "dress"
+    },
+    {
+      "id": "wears_footwear",
+      "label": "Wears Footwear",
+      "status": "active",
+      "from_entity_type": "model",
+      "to_entity_type": "footwear"
+    },
+    {
+      "id": "sits_on",
+      "label": "Sits On",
+      "status": "active",
+      "from_entity_type": "model",
+      "to_entity_type": "prop"
+    },
+    {
+      "id": "located_at",
+      "label": "Located At",
+      "status": "active",
+      "from_entity_type": "model",
+      "to_entity_type": "place"
+    }
+  ]
+}
