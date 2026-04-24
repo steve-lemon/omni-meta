@@ -6,21 +6,27 @@ function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(resolve(process.cwd(), path), "utf8")) as T;
 }
 
-function scalarType(attr: Attribute): Record<string, unknown> {
-  if (attr.type === "number") return { type: "double" };
-  if (attr.type === "boolean") return { type: "boolean" };
-  if (attr.type === "date") return { type: "date" };
-  return { type: "keyword", ignore_above: 512 };
+const ATTRIBUTE_SCALAR_MAPPINGS: Record<string, Record<string, unknown>> = {
+  number: { type: "double" },
+  boolean: { type: "boolean" },
+  date: { type: "date" }
+};
+
+export function mappingForAttribute(attr: Attribute): Record<string, unknown> {
+  const scalarMapping =
+    ATTRIBUTE_SCALAR_MAPPINGS[attr.type] ?? { type: "keyword", ignore_above: 512 };
+
+  return {
+    ...scalarMapping,
+    meta: { cardinality: attr.cardinality }
+  };
 }
 
 function mappingForTaxonomy(taxonomy: TaxonomyFile): Record<string, unknown> {
   const metadataProps: Record<string, unknown> = {};
   for (const attr of taxonomy.attributes) {
     if (attr.status !== "active") continue;
-    metadataProps[attr.key] = {
-      ...scalarType(attr),
-      meta: { cardinality: attr.cardinality }
-    };
+    metadataProps[attr.key] = mappingForAttribute(attr);
   }
 
   return {
