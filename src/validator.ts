@@ -282,6 +282,14 @@ function validateAttributes(attributes: Attribute[], vocabularyById: Map<string,
         });
       } else {
         const vocab = vocabularyById.get(attribute.vocab_ref);
+        if (vocab?.status === "deprecated") {
+          issues.push({
+            level: "WARNING",
+            code: "A_VOCAB_DEPRECATED",
+            message: `Attribute '${attribute.key}' references deprecated vocabulary '${vocab.id}'`,
+            path: `attributes[${i}].vocab_ref`
+          });
+        }
         if (attribute.type === "color" && vocab?.type !== "color") {
           issues.push({
             level: "ERROR",
@@ -434,13 +442,32 @@ function validateBindings(
         const vocab = vocabularyById.get(attribute.vocab_ref);
         if (!vocab) continue;
 
+        if (vocab.status === "deprecated") {
+          issues.push({
+            level: "WARNING",
+            code: "B_VOCAB_DEPRECATED",
+            message: `Category '${category.id}' uses deprecated vocabulary '${vocab.id}' through attribute '${attribute.key}'`,
+            path: `categories[${catIdx}].attribute_bindings[${bindIdx}].key`
+          });
+        }
+
         const terms = new Set(vocab.terms.map((term) => normalize(term.value)));
+        const deprecatedTerms = new Set(
+          vocab.terms.filter((term) => term.status === "deprecated").map((term) => normalize(term.value))
+        );
         for (const term of allowedTerms) {
           if (!terms.has(normalize(term))) {
             issues.push({
               level: "ERROR",
               code: "B_OVERRIDE_TERM_UNKNOWN",
               message: `Unknown term '${term}' for vocab '${vocab.id}'`,
+              path: `categories[${catIdx}].attribute_bindings[${bindIdx}].override.allowed_terms`
+            });
+          } else if (deprecatedTerms.has(normalize(term))) {
+            issues.push({
+              level: "WARNING",
+              code: "B_OVERRIDE_TERM_DEPRECATED",
+              message: `Category '${category.id}' uses deprecated term '${term}' in allowed_terms for attribute '${attribute.key}'`,
               path: `categories[${catIdx}].attribute_bindings[${bindIdx}].override.allowed_terms`
             });
           }

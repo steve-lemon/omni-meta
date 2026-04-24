@@ -174,7 +174,7 @@
       "terms": [
         {
           "value": "맑음",
-          "status": "active",
+          "status": "deprecated",
           "aliases": [
             "화창함"
           ]
@@ -310,7 +310,8 @@
       "cardinality": "multi",
       "status": "active",
       "vocab_ref": "colors",
-      "aliases": []
+      "aliases": [],
+      "priority": 1
     },
     {
       "key": "time_of_day",
@@ -319,7 +320,8 @@
       "cardinality": "single",
       "status": "active",
       "vocab_ref": "time_of_day",
-      "aliases": []
+      "aliases": [],
+      "priority": 2
     },
     {
       "key": "weather",
@@ -328,7 +330,8 @@
       "cardinality": "single",
       "status": "active",
       "vocab_ref": "weather",
-      "aliases": []
+      "aliases": [],
+      "priority": 3
     },
     {
       "key": "season",
@@ -337,7 +340,8 @@
       "cardinality": "single",
       "status": "active",
       "vocab_ref": "seasons",
-      "aliases": []
+      "aliases": [],
+      "priority": 4
     },
     {
       "key": "orientation",
@@ -346,7 +350,8 @@
       "cardinality": "single",
       "status": "active",
       "vocab_ref": "photo_orientation",
-      "aliases": []
+      "aliases": [],
+      "priority": 5
     },
     {
       "key": "composition",
@@ -355,7 +360,8 @@
       "cardinality": "multi",
       "status": "active",
       "vocab_ref": "composition_techniques",
-      "aliases": []
+      "aliases": [],
+      "priority": 6
     },
     {
       "key": "has_people",
@@ -363,7 +369,8 @@
       "type": "boolean",
       "cardinality": "single",
       "status": "active",
-      "aliases": []
+      "aliases": [],
+      "priority": 7
     },
     {
       "key": "has_manmade_object",
@@ -371,7 +378,8 @@
       "type": "boolean",
       "cardinality": "single",
       "status": "active",
-      "aliases": []
+      "aliases": [],
+      "priority": 8
     },
     {
       "key": "keyword_tags",
@@ -381,7 +389,8 @@
       "status": "active",
       "aliases": [
         "태그"
-      ]
+      ],
+      "priority": 9
     },
     {
       "key": "mood",
@@ -391,7 +400,8 @@
       "status": "active",
       "aliases": [
         "느낌"
-      ]
+      ],
+      "priority": 10
     }
   ],
   "categories": [

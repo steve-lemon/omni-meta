@@ -235,6 +235,9 @@ function inferFixPath(issue: ValidationIssue): string | undefined {
   if (issue.code === "A_ENUM_COLOR_VOCAB" && issue.path?.endsWith(".vocab_ref")) {
     return issue.path.replace(/\.vocab_ref$/, ".type");
   }
+  if (issue.code === "B_OVERRIDE_TERM_DEPRECATED" && issue.path?.endsWith(".override.allowed_terms")) {
+    return issue.path;
+  }
   return undefined;
 }
 
@@ -298,6 +301,15 @@ function summarizeIssueInKorean(issue: ValidationIssueWithLine): string | undefi
   if (issue.code === "V_COLOR_CODE_NON_COLOR") {
     return "일반 vocabulary에 `color_code`가 들어 있어 타입 정의와 term 데이터가 어긋나 있습니다.";
   }
+  if (issue.code === "A_VOCAB_DEPRECATED") {
+    return "이 attribute가 deprecated vocabulary를 참조하고 있어 향후 교체 또는 정리가 필요합니다.";
+  }
+  if (issue.code === "B_VOCAB_DEPRECATED") {
+    return "이 category binding이 deprecated vocabulary를 간접적으로 사용하고 있습니다.";
+  }
+  if (issue.code === "B_OVERRIDE_TERM_DEPRECATED") {
+    return "allowed_terms 안에 deprecated term이 포함되어 있어 active term으로 교체하는 것이 좋습니다.";
+  }
   return undefined;
 }
 
@@ -338,7 +350,67 @@ function groupIssuesByLevel(issues: ValidationIssueWithLine[]): Record<Validatio
   };
 }
 
-function collectImprovementSuggestions(bundlePath: string, issues: ValidationIssueWithLine[]): string[] {
+function parseBindingPath(path?: string): { categoryIndex: number; bindingIndex: number } | undefined {
+  if (!path) return undefined;
+  const match = path.match(/^categories\[(\d+)\]\.attribute_bindings\[(\d+)\]/);
+  if (!match) return undefined;
+  return {
+    categoryIndex: Number(match[1]),
+    bindingIndex: Number(match[2])
+  };
+}
+
+function buildDeprecatedTermCandidateHint(bundle: TaxonomyFile, issue: ValidationIssueWithLine): string | undefined {
+  if (issue.code !== "B_OVERRIDE_TERM_DEPRECATED") return undefined;
+  const parsed = parseBindingPath(issue.path);
+  if (!parsed) return undefined;
+
+  const category = bundle.categories[parsed.categoryIndex];
+  const binding = category?.attribute_bindings[parsed.bindingIndex];
+  const attribute = binding ? bundle.attributes.find((item) => item.key === binding.key) : undefined;
+  const vocab = attribute?.vocab_ref ? bundle.vocabularies.find((item) => item.id === attribute.vocab_ref) : undefined;
+  if (!category || !binding || !attribute || !vocab) return undefined;
+
+  const activeTerms = vocab.terms.filter((term) => term.status === "active").map((term) => term.value);
+  if (activeTerms.length === 0) {
+    return `\`${binding.key}\`의 vocabulary \`${vocab.id}\`에 active term이 없습니다. vocabulary 정책부터 먼저 점검하세요.`;
+  }
+
+  return `\`${binding.key}\`의 deprecated term을 active term으로 교체하세요. 후보: ${activeTerms.join(", ")}`;
+}
+
+type SuggestedEdit = {
+  path: string;
+  location?: string;
+  replacement: string;
+};
+
+function buildSuggestedEdits(bundlePath: string, bundle: TaxonomyFile, issues: ValidationIssueWithLine[]): SuggestedEdit[] {
+  const edits: SuggestedEdit[] = [];
+
+  for (const issue of issues) {
+    if (issue.code === "A_ENUM_COLOR_VOCAB" && issue.fixPath && issue.fixLine) {
+      edits.push({
+        path: issue.fixPath,
+        location: formatFileLine(bundlePath, issue.fixLine),
+        replacement: '"type": "color"'
+      });
+    }
+
+    if (issue.code === "B_OVERRIDE_TERM_DEPRECATED" && issue.fixPath && issue.fixLine) {
+      const candidateHint = buildDeprecatedTermCandidateHint(bundle, issue);
+      edits.push({
+        path: issue.fixPath,
+        location: formatFileLine(bundlePath, issue.fixLine),
+        replacement: candidateHint ?? "Replace deprecated term with an active canonical term."
+      });
+    }
+  }
+
+  return edits;
+}
+
+function collectImprovementSuggestions(bundlePath: string, bundle: TaxonomyFile, issues: ValidationIssueWithLine[]): string[] {
   const suggestions = new Set<string>();
   const codes = new Set(issues.map((issue) => issue.code));
   for (const issue of issues) {
@@ -362,6 +434,9 @@ function collectImprovementSuggestions(bundlePath: string, issues: ValidationIss
     if (issue.code === "A_VOCAB_NOT_FOUND") {
       suggestions.add("`vocab_ref`가 실제 vocabulary id를 가리키는지 확인하고 오타나 누락된 vocabulary를 정리하세요.");
     }
+    if (issue.code === "A_VOCAB_DEPRECATED") {
+      suggestions.add("deprecated vocabulary를 참조하는 attribute는 active vocabulary로 교체하거나 상태 정책을 다시 점검하세요.");
+    }
     if (
       !codes.has("A_ENUM_COLOR_VOCAB") &&
       !codes.has("A_COLOR_NO_VOCAB") &&
@@ -375,7 +450,15 @@ function collectImprovementSuggestions(bundlePath: string, issues: ValidationIss
     if (issue.code.startsWith("V_COLOR_CODE")) suggestions.add("color vocabulary term에는 유효한 hex `color_code`를 넣고, 일반 vocabulary에는 넣지 마세요.");
     if (issue.code.startsWith("V_ALIAS")) suggestions.add("같은 vocabulary 안에서 alias가 canonical term이나 다른 term과 충돌하지 않도록 정리하세요.");
     if (issue.code.startsWith("B_ATTR_NOT_FOUND")) suggestions.add("카테고리 바인딩의 `key`가 실제 attribute 정의를 가리키는지 확인하세요.");
-    if (issue.code.startsWith("B_OVERRIDE")) suggestions.add("`override.allowed_terms`는 enum/color + vocab_ref 조합에서만 쓰고 vocab term subset으로 맞추세요.");
+    if (!codes.has("B_OVERRIDE_TERM_DEPRECATED") && issue.code.startsWith("B_OVERRIDE")) {
+      suggestions.add("`override.allowed_terms`는 enum/color + vocab_ref 조합에서만 쓰고 vocab term subset으로 맞추세요.");
+    }
+    if (issue.code === "B_VOCAB_DEPRECATED") {
+      suggestions.add("category binding이 참조하는 vocabulary가 deprecated 상태인지 확인하고 가능한 active vocabulary로 옮기세요.");
+    }
+    if (issue.code === "B_OVERRIDE_TERM_DEPRECATED") {
+      suggestions.add(buildDeprecatedTermCandidateHint(bundle, issue) ?? "deprecated term을 `allowed_terms`에서 제거하고 active canonical term으로 교체하세요.");
+    }
     if (issue.code.startsWith("E_RELATION")) suggestions.add("relation의 `from_entity_type` / `to_entity_type`가 실제 entity type을 참조하도록 수정하세요.");
     if (issue.code.startsWith("R_MULTI_CATEGORY")) suggestions.add("`rules.multi_category` 설정값을 허용 범위로 조정하세요.");
   }
@@ -386,7 +469,8 @@ function printValidationReport(bundlePath: string, bundle: TaxonomyFile, issues:
   const summary = summarizeIssues(issues);
   const quality = summarizeBundleQuality(bundle);
   const grouped = groupIssuesByLevel(issues);
-  const suggestions = collectImprovementSuggestions(bundlePath, issues);
+  const suggestions = collectImprovementSuggestions(bundlePath, bundle, issues);
+  const suggestedEdits = buildSuggestedEdits(bundlePath, bundle, issues);
 
   console.log("\n=== Bundle Validation Report ===");
   console.log(`Bundle: ${bundlePath}`);
@@ -434,6 +518,10 @@ function printValidationReport(bundlePath: string, bundle: TaxonomyFile, issues:
         const detectedAt = formatFileLine(bundlePath, issue.line);
         console.log(`   Detected at: ${issue.path}${detectedAt ? ` (${detectedAt})` : ""}`);
       }
+      if (issue.fixPath) {
+        const suggestedFixAt = formatFileLine(bundlePath, issue.fixLine);
+        console.log(`   Suggested fix at: ${issue.fixPath}${suggestedFixAt ? ` (${suggestedFixAt})` : ""}`);
+      }
       console.log(`   ${issue.message}`);
       const koreanSummary = summarizeIssueInKorean(issue);
       if (koreanSummary) {
@@ -465,17 +553,9 @@ function printValidationReport(bundlePath: string, bundle: TaxonomyFile, issues:
     });
   }
 
-  const patchHints = issues
-    .filter((issue) => issue.code === "A_ENUM_COLOR_VOCAB" && issue.fixPath && issue.fixLine)
-    .map((issue) => ({
-      path: issue.fixPath!,
-      location: formatFileLine(bundlePath, issue.fixLine),
-      replacement: '"type": "color"'
-    }));
-
-  if (patchHints.length > 0) {
+  if (suggestedEdits.length > 0) {
     console.log("\n[Suggested Patch]");
-    patchHints.forEach((hint, index) => {
+    suggestedEdits.forEach((hint, index) => {
       console.log(`${index + 1}. ${hint.path}${hint.location ? ` (${hint.location})` : ""}`);
       console.log(`   ${hint.replacement}`);
     });
