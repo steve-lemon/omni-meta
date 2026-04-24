@@ -106,6 +106,21 @@ Run interactive bundle management CLI:
 npm run bundle:cli
 ```
 
+Verbose logs:
+
+```bash
+npm run bundle:cli -- --verbose
+```
+
+OpenAI SDK image analysis:
+
+```bash
+export OPENAI_API_KEY=your_key
+# optional
+export OPENAI_VISION_MODEL=gpt-4.1-mini
+npm run bundle:cli
+```
+
 CLI workflow:
 1. Select bundle to manage.
 2. Select image to analyze.
