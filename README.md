@@ -35,6 +35,8 @@ This repository provides:
 - `examples/fashion-photos.json`: Sample photo metadata records used in simulation.
 - `examples/domains/`: Domain-managed source files used to build `fashion.json`.
 - `docs/photo-design-review.md`: Photo-driven gap analysis and taxonomy improvement proposals.
+- `docs/entity-model-guidelines.md`: Decision rules and modeling guidance for `entity_model`, entity types, and relations.
+- `docs/background-taxonomy-entity-review.md`: Concrete review of why `sample/background.json` should stay photo-level unless object search is required.
 - `docs/runtime-considerations.md`: Runtime bundle/NoSQL/OpenSearch implementation guidance.
 - `docs/nosql-migration-playbook.md`: Versioned NoSQL migration strategy and safeguards.
 - `docs/bundle-cli-workflow.md`: CLI loop guide for bundle-based analysis/feedback updates.
@@ -227,6 +229,8 @@ The simulation enforces category inheritance-aware bindings and applies the conf
 - Relation `from_entity_type` / `to_entity_type` must reference existing entity types.
 - Runtime entities are expected to have `category_ids` (max 3).
 - Runtime entity attributes must be allowed by the merged bindings of the entity's selected categories.
+
+For modeling guidance on when to use entity nodes versus plain photo metadata, see `docs/entity-model-guidelines.md`.
 
 ## Exit code contract
 

@@ -41,6 +41,14 @@ Suggested document shape:
 
 Key point: keep values in native types (string/number/boolean/array), not serialized blobs.
 
+Entity modeling rule of thumb:
+
+- keep data in photo-level `metadata` unless object-level distinction is needed
+- use `entities[]` only when separate objects require their own categories/attributes
+- use `relations[]` only when the edge itself matters for retrieval
+
+For detailed governance and modeling criteria, see `docs/entity-model-guidelines.md`.
+
 ## 4) OpenSearch indexing (type-safe)
 
 To keep search reliable:
