@@ -12,5 +12,27 @@
     "mapping:os": "node --experimental-strip-types src/opensearch-mapping.ts examples/fashion.json",
     "os:plan": "node --experimental-strip-types src/opensearch-index-plan.ts examples/fashion.json fashion-photo",
     "bundle:cli": "node --experimental-strip-types src/bundle-manager-cli.ts"
+  },
+  "license": "MIT",
+  "dependencies": {
+      "@google/genai": "^1.28.0",
+      "js-yaml": "^4.1.1",
+      "openai": "^6.27.0",
+      "zod": "3.25.76",
+      "zod-to-json-schema": "^3.24.6"
+  },
+  "devDependencies": {
+      "@types/js-yaml": "^4.0.9",
+      "@types/node": "^24.6.1",
+      "@typescript-eslint/eslint-plugin": "^5.22.0",
+      "@typescript-eslint/parser": "^5.22.0",
+      "eslint": "^8.14.0",
+      "eslint-config-prettier": "^8.5.0",
+      "eslint-plugin-prettier": "^4.0.0",
+      "lint-staged": "^13.1.0",
+      "prettier": "^2.6.2",
+      "tsx": "^4.20.6",
+      "typescript": "^5.9.3",
+      "vitest": "^0.34.6"
   }
 }
