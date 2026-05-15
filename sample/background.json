@@ -1,0 +1,822 @@
+{
+  "schema_version": "2.0.0",
+  "meta": {
+    "name": "배경 사진 관리용 택소노미",
+    "updated_at": "2023-11-20T10:00:00Z",
+    "description": ""
+  },
+  "vocabularies": [
+    {
+      "id": "colors",
+      "status": "active",
+      "terms": [
+        {
+          "value": "파란색",
+          "status": "active",
+          "aliases": [
+            "블루"
+          ],
+          "color_code": "#0000FF"
+        },
+        {
+          "value": "초록색",
+          "status": "active",
+          "aliases": [
+            "그린"
+          ],
+          "color_code": "#008000"
+        },
+        {
+          "value": "빨간색",
+          "status": "active",
+          "aliases": [
+            "레드"
+          ],
+          "color_code": "#FF0000"
+        },
+        {
+          "value": "노란색",
+          "status": "active",
+          "aliases": [
+            "옐로우"
+          ],
+          "color_code": "#FFFF00"
+        },
+        {
+          "value": "연노란색",
+          "status": "active",
+          "aliases": [
+            "라이트 옐로우"
+          ],
+          "color_code": "#FFFFE0"
+        },
+        {
+          "value": "황금색",
+          "status": "active",
+          "aliases": [
+            "골드"
+          ],
+          "color_code": "#FFD700"
+        },
+        {
+          "value": "레몬색",
+          "status": "active",
+          "aliases": [
+            "레몬 옐로우"
+          ],
+          "color_code": "#FFFACD"
+        },
+        {
+          "value": "겨자색",
+          "status": "active",
+          "aliases": [
+            "머스타드"
+          ],
+          "color_code": "#FFDB58"
+        },
+        {
+          "value": "분홍색",
+          "status": "active",
+          "aliases": [
+            "핑크"
+          ],
+          "color_code": "#FFC0CB"
+        },
+        {
+          "value": "갈색",
+          "status": "active",
+          "aliases": [
+            "브라운"
+          ],
+          "color_code": "#A52A2A"
+        },
+        {
+          "value": "검정색",
+          "status": "active",
+          "aliases": [
+            "블랙"
+          ],
+          "color_code": "#000000"
+        },
+        {
+          "value": "하얀색",
+          "status": "active",
+          "aliases": [
+            "화이트"
+          ],
+          "color_code": "#FFFFFF"
+        },
+        {
+          "value": "회색",
+          "status": "active",
+          "aliases": [
+            "그레이"
+          ],
+          "color_code": "#808080"
+        },
+        {
+          "value": "보라색",
+          "status": "active",
+          "aliases": [
+            "퍼플"
+          ],
+          "color_code": "#800080"
+        }
+      ],
+      "type": "color"
+    },
+    {
+      "id": "time_of_day",
+      "status": "active",
+      "terms": [
+        {
+          "value": "아침",
+          "status": "active",
+          "aliases": [
+            "새벽",
+            "오전"
+          ]
+        },
+        {
+          "value": "정오",
+          "status": "active",
+          "aliases": [
+            "낮",
+            "한낮"
+          ]
+        },
+        {
+          "value": "오후",
+          "status": "active",
+          "aliases": []
+        },
+        {
+          "value": "해질녘",
+          "status": "active",
+          "aliases": [
+            "노을",
+            "일몰"
+          ]
+        },
+        {
+          "value": "밤",
+          "status": "active",
+          "aliases": [
+            "야간"
+          ]
+        }
+      ],
+      "type": "string"
+    },
+    {
+      "id": "weather",
+      "status": "active",
+      "terms": [
+        {
+          "value": "맑음",
+          "status": "active",
+          "aliases": [
+            "화창함"
+          ]
+        },
+        {
+          "value": "흐림",
+          "status": "active",
+          "aliases": [
+            "구름 많음"
+          ]
+        },
+        {
+          "value": "비",
+          "status": "active",
+          "aliases": [
+            "우천"
+          ]
+        },
+        {
+          "value": "눈",
+          "status": "active",
+          "aliases": [
+            "설천"
+          ]
+        },
+        {
+          "value": "안개",
+          "status": "active",
+          "aliases": []
+        }
+      ],
+      "type": "string"
+    },
+    {
+      "id": "seasons",
+      "status": "active",
+      "terms": [
+        {
+          "value": "봄",
+          "status": "active",
+          "aliases": []
+        },
+        {
+          "value": "여름",
+          "status": "active",
+          "aliases": []
+        },
+        {
+          "value": "가을",
+          "status": "active",
+          "aliases": []
+        },
+        {
+          "value": "겨울",
+          "status": "active",
+          "aliases": []
+        }
+      ],
+      "type": "string"
+    },
+    {
+      "id": "photo_orientation",
+      "status": "active",
+      "terms": [
+        {
+          "value": "가로",
+          "status": "active",
+          "aliases": [
+            "수평",
+            "Landscape"
+          ]
+        },
+        {
+          "value": "세로",
+          "status": "active",
+          "aliases": [
+            "수직",
+            "Portrait"
+          ]
+        },
+        {
+          "value": "정방형",
+          "status": "active",
+          "aliases": [
+            "스퀘어",
+            "Square"
+          ]
+        }
+      ],
+      "type": "string"
+    },
+    {
+      "id": "composition_techniques",
+      "status": "active",
+      "terms": [
+        {
+          "value": "삼분할법",
+          "status": "active",
+          "aliases": []
+        },
+        {
+          "value": "소실점",
+          "status": "active",
+          "aliases": [
+            "원근법",
+            "리딩라인"
+          ]
+        },
+        {
+          "value": "대칭",
+          "status": "active",
+          "aliases": []
+        },
+        {
+          "value": "패턴과 반복",
+          "status": "active",
+          "aliases": []
+        },
+        {
+          "value": "중앙 집중",
+          "status": "active",
+          "aliases": []
+        }
+      ],
+      "type": "string"
+    }
+  ],
+  "attributes": [
+    {
+      "key": "dominant_colors",
+      "label": "주요 색상",
+      "type": "color",
+      "cardinality": "multi",
+      "status": "active",
+      "vocab_ref": "colors",
+      "aliases": [],
+      "priority": 1
+    },
+    {
+      "key": "time_of_day",
+      "label": "시간대",
+      "type": "enum",
+      "cardinality": "single",
+      "status": "active",
+      "vocab_ref": "time_of_day",
+      "aliases": [],
+      "priority": 2
+    },
+    {
+      "key": "weather",
+      "label": "날씨",
+      "type": "enum",
+      "cardinality": "single",
+      "status": "active",
+      "vocab_ref": "weather",
+      "aliases": [],
+      "priority": 3
+    },
+    {
+      "key": "season",
+      "label": "계절",
+      "type": "enum",
+      "cardinality": "single",
+      "status": "active",
+      "vocab_ref": "seasons",
+      "aliases": [],
+      "priority": 4
+    },
+    {
+      "key": "orientation",
+      "label": "사진 방향",
+      "type": "enum",
+      "cardinality": "single",
+      "status": "active",
+      "vocab_ref": "photo_orientation",
+      "aliases": [],
+      "priority": 5
+    },
+    {
+      "key": "composition",
+      "label": "구도",
+      "type": "enum",
+      "cardinality": "multi",
+      "status": "active",
+      "vocab_ref": "composition_techniques",
+      "aliases": [],
+      "priority": 6
+    },
+    {
+      "key": "has_people",
+      "label": "인물 포함 여부",
+      "type": "boolean",
+      "cardinality": "single",
+      "status": "active",
+      "aliases": [],
+      "priority": 7
+    },
+    {
+      "key": "has_manmade_object",
+      "label": "인공물 포함 여부",
+      "type": "boolean",
+      "cardinality": "single",
+      "status": "active",
+      "aliases": [],
+      "priority": 8
+    },
+    {
+      "key": "keyword_tags",
+      "label": "키워드 태그",
+      "type": "string",
+      "cardinality": "multi",
+      "status": "active",
+      "aliases": [
+        "태그"
+      ],
+      "priority": 9
+    },
+    {
+      "key": "mood",
+      "label": "분위기",
+      "type": "string",
+      "cardinality": "multi",
+      "status": "active",
+      "aliases": [
+        "느낌"
+      ],
+      "priority": 10
+    }
+  ],
+  "categories": [
+    {
+      "id": "background_photo",
+      "name": "배경 사진",
+      "search_path": "배경 사진",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "orientation",
+          "required": true,
+          "status": "active"
+        },
+        {
+          "key": "dominant_colors",
+          "required": true,
+          "status": "active"
+        },
+        {
+          "key": "has_people",
+          "required": false,
+          "status": "active"
+        },
+        {
+          "key": "mood",
+          "required": false,
+          "status": "active"
+        },
+        {
+          "key": "keyword_tags",
+          "required": false,
+          "status": "active"
+        }
+      ],
+      "parent_id": null,
+      "aliases": []
+    },
+    {
+      "id": "nature",
+      "name": "자연",
+      "search_path": "배경 사진/자연",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "time_of_day",
+          "required": true,
+          "status": "active"
+        },
+        {
+          "key": "weather",
+          "required": true,
+          "status": "active"
+        },
+        {
+          "key": "season",
+          "required": true,
+          "status": "active"
+        },
+        {
+          "key": "has_manmade_object",
+          "required": false,
+          "status": "active"
+        }
+      ],
+      "aliases": [
+        "풍경"
+      ],
+      "parent_id": "background_photo"
+    },
+    {
+      "id": "city",
+      "name": "도시",
+      "search_path": "배경 사진/도시",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "time_of_day",
+          "required": true,
+          "status": "active"
+        }
+      ],
+      "aliases": [
+        "도심"
+      ],
+      "parent_id": "background_photo"
+    },
+    {
+      "id": "indoor",
+      "name": "실내",
+      "search_path": "배경 사진/실내",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [],
+      "parent_id": "background_photo",
+      "aliases": []
+    },
+    {
+      "id": "abstract",
+      "name": "추상",
+      "search_path": "배경 사진/추상",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [],
+      "aliases": [
+        "패턴",
+        "텍스처"
+      ],
+      "parent_id": "background_photo"
+    },
+    {
+      "id": "nature_sky",
+      "name": "하늘",
+      "search_path": "배경 사진/자연/하늘",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [],
+      "parent_id": "nature",
+      "aliases": []
+    },
+    {
+      "id": "nature_mountain",
+      "name": "산과 언덕",
+      "search_path": "배경 사진/자연/산과 언덕",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [],
+      "aliases": [
+        "등산로"
+      ],
+      "parent_id": "nature"
+    },
+    {
+      "id": "nature_forest",
+      "name": "숲과 나무",
+      "search_path": "배경 사진/자연/숲과 나무",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [],
+      "parent_id": "nature",
+      "aliases": []
+    },
+    {
+      "id": "nature_water",
+      "name": "바다와 강",
+      "search_path": "배경 사진/자연/바다와 강",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [],
+      "aliases": [
+        "해변",
+        "호수"
+      ],
+      "parent_id": "nature"
+    },
+    {
+      "id": "nature_field",
+      "name": "들판과 초원",
+      "search_path": "배경 사진/자연/들판과 초원",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [],
+      "parent_id": "nature",
+      "aliases": []
+    },
+    {
+      "id": "nature_flower",
+      "name": "꽃",
+      "search_path": "배경 사진/자연/꽃",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [],
+      "aliases": [
+        "꽃밭"
+      ],
+      "parent_id": "nature"
+    },
+    {
+      "id": "nature_mountain_spring",
+      "name": "봄 산",
+      "search_path": "배경 사진/자연/산과 언덕/봄 산",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "season",
+          "required": true,
+          "status": "active",
+          "override": {
+            "allowed_terms": [
+              "봄"
+            ]
+          }
+        }
+      ],
+      "parent_id": "nature_mountain",
+      "aliases": []
+    },
+    {
+      "id": "nature_mountain_winter",
+      "name": "겨울 산",
+      "search_path": "배경 사진/자연/산과 언덕/겨울 산",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "season",
+          "required": true,
+          "status": "active",
+          "override": {
+            "allowed_terms": [
+              "겨울"
+            ]
+          }
+        }
+      ],
+      "aliases": [
+        "설산"
+      ],
+      "parent_id": "nature_mountain"
+    },
+    {
+      "id": "nature_sky_clear",
+      "name": "맑은 하늘",
+      "search_path": "배경 사진/자연/하늘/맑은 하늘",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "weather",
+          "required": true,
+          "status": "active",
+          "override": {
+            "allowed_terms": [
+              "맑음"
+            ]
+          }
+        }
+      ],
+      "parent_id": "nature_sky",
+      "aliases": []
+    },
+    {
+      "id": "nature_sky_sunset",
+      "name": "노을",
+      "search_path": "배경 사진/자연/하늘/노을",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "time_of_day",
+          "required": true,
+          "status": "active",
+          "override": {
+            "allowed_terms": [
+              "해질녘"
+            ]
+          }
+        }
+      ],
+      "parent_id": "nature_sky",
+      "aliases": []
+    },
+    {
+      "id": "city_street",
+      "name": "거리",
+      "search_path": "배경 사진/도시/거리",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [],
+      "aliases": [
+        "도로"
+      ],
+      "parent_id": "city"
+    },
+    {
+      "id": "city_nightscape",
+      "name": "야경",
+      "search_path": "배경 사진/도시/야경",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [
+        {
+          "key": "time_of_day",
+          "required": true,
+          "status": "active",
+          "override": {
+            "allowed_terms": [
+              "밤"
+            ]
+          }
+        }
+      ],
+      "parent_id": "city",
+      "aliases": []
+    },
+    {
+      "id": "indoor_cafe",
+      "name": "카페",
+      "search_path": "배경 사진/실내/카페",
+      "status": "active",
+      "inherit_attributes": true,
+      "attribute_bindings": [],
+      "parent_id": "indoor",
+      "aliases": []
+    }
+  ],
+  "entity_model": {
+    "entity_types": [
+      {
+        "id": "model",
+        "label": "Model",
+        "status": "active",
+        "aliases": [
+          "person",
+          "subject"
+        ]
+      },
+      {
+        "id": "dress",
+        "label": "Dress",
+        "status": "active",
+        "aliases": [
+          "onepiece"
+        ]
+      },
+      {
+        "id": "bag",
+        "label": "Bag",
+        "status": "active",
+        "aliases": [
+          "backpack",
+          "handbag"
+        ]
+      },
+      {
+        "id": "chair",
+        "label": "Chair",
+        "status": "active",
+        "aliases": [
+          "seat"
+        ]
+      },
+      {
+        "id": "place",
+        "label": "Place",
+        "status": "active",
+        "aliases": [
+          "location",
+          "background_place"
+        ]
+      }
+    ],
+    "relation_types": [
+      {
+        "id": "wears",
+        "label": "Wears",
+        "status": "active",
+        "from_entity_type": "model",
+        "to_entity_type": "dress"
+      },
+      {
+        "id": "sits_on",
+        "label": "Sits On",
+        "status": "active",
+        "from_entity_type": "model",
+        "to_entity_type": "chair"
+      },
+      {
+        "id": "placed_on",
+        "label": "Placed On",
+        "status": "active",
+        "from_entity_type": "bag",
+        "to_entity_type": "chair"
+      },
+      {
+        "id": "located_at",
+        "label": "Located At",
+        "status": "active",
+        "from_entity_type": "model",
+        "to_entity_type": "place"
+      }
+    ]
+  },
+  "normalization": {
+    "case_insensitive": true,
+    "trim_whitespace": true,
+    "unicode_normalization": "NFC",
+    "alias_resolution_order": [
+      "vocabulary_term_alias",
+      "attribute_alias",
+      "category_alias"
+    ],
+    "deprecated_policy": {
+      "accept_input": true,
+      "store_as_canonical_if_possible": true,
+      "warn_on_use": true
+    }
+  },
+  "rules": {
+    "id_unique": true,
+    "attribute_key_unique": true,
+    "search_path_unique": true,
+    "child_override_parent": true,
+    "status_values": [
+      "active",
+      "deprecated"
+    ],
+    "multi_category": {
+      "enabled": false,
+      "max_categories_per_photo": 1,
+      "attribute_merge_strategy": "union"
+    }
+  }
+}

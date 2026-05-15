@@ -1,0 +1,216 @@
+[
+  {
+    "id": "fashion",
+    "name": "Fashion",
+    "parent_id": null,
+    "search_path": "fashion",
+    "status": "active",
+    "aliases": [
+      "패션"
+    ],
+    "inherit_attributes": false,
+    "attribute_bindings": [
+      {
+        "key": "model",
+        "required": false,
+        "status": "active"
+      },
+      {
+        "key": "captured_at",
+        "required": false,
+        "status": "active"
+      },
+      {
+        "key": "photographer_email",
+        "required": false,
+        "status": "active"
+      },
+      {
+        "key": "source_url",
+        "required": false,
+        "status": "active"
+      },
+      {
+        "key": "dominant_color",
+        "required": false,
+        "status": "active"
+      },
+      {
+        "key": "style",
+        "required": false,
+        "status": "active"
+      }
+    ]
+  },
+  {
+    "id": "tops",
+    "name": "Tops",
+    "parent_id": "fashion",
+    "search_path": "fashion/tops",
+    "status": "active",
+    "aliases": [
+      "상의"
+    ],
+    "inherit_attributes": true,
+    "attribute_bindings": [
+      {
+        "key": "top_type",
+        "required": true,
+        "status": "active"
+      }
+    ]
+  },
+  {
+    "id": "shirt",
+    "name": "Shirt",
+    "parent_id": "tops",
+    "search_path": "fashion/tops/shirt",
+    "status": "active",
+    "aliases": [
+      "셔츠"
+    ],
+    "inherit_attributes": true,
+    "attribute_bindings": [
+      {
+        "key": "top_type",
+        "required": true,
+        "status": "active",
+        "override": {
+          "allowed_terms": [
+            "shirt"
+          ]
+        }
+      },
+      {
+        "key": "legacy_color",
+        "required": false,
+        "status": "active"
+      },
+      {
+        "key": "garment_type",
+        "required": false,
+        "status": "active",
+        "override": {
+          "allowed_terms": [
+            "shirt"
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "dress",
+    "name": "Dress",
+    "parent_id": "fashion",
+    "search_path": "fashion/dress",
+    "status": "active",
+    "inherit_attributes": true,
+    "attribute_bindings": [
+      {
+        "key": "garment_type",
+        "required": true,
+        "status": "active",
+        "override": {
+          "allowed_terms": [
+            "slip_dress"
+          ]
+        }
+      },
+      {
+        "key": "style",
+        "required": false,
+        "status": "active"
+      }
+    ],
+    "aliases": [
+      "드레스"
+    ]
+  },
+  {
+    "id": "footwear",
+    "name": "Footwear",
+    "parent_id": "fashion",
+    "search_path": "fashion/footwear",
+    "status": "active",
+    "inherit_attributes": true,
+    "attribute_bindings": [
+      {
+        "key": "footwear_type",
+        "required": true,
+        "status": "active"
+      },
+      {
+        "key": "style",
+        "required": false,
+        "status": "active"
+      }
+    ],
+    "aliases": [
+      "신발"
+    ]
+  },
+  {
+    "id": "place",
+    "name": "Place",
+    "parent_id": "fashion",
+    "search_path": "fashion/place",
+    "status": "active",
+    "inherit_attributes": true,
+    "attribute_bindings": [
+      {
+        "key": "scene_type",
+        "required": true,
+        "status": "active"
+      }
+    ],
+    "aliases": [
+      "장소"
+    ]
+  },
+  {
+    "id": "prop",
+    "name": "Prop",
+    "parent_id": "fashion",
+    "search_path": "fashion/prop",
+    "status": "active",
+    "inherit_attributes": true,
+    "attribute_bindings": [
+      {
+        "key": "prop_type",
+        "required": true,
+        "status": "active"
+      }
+    ],
+    "aliases": [
+      "소품"
+    ]
+  },
+  {
+    "id": "person",
+    "name": "Person",
+    "parent_id": "fashion",
+    "search_path": "fashion/person",
+    "status": "active",
+    "inherit_attributes": true,
+    "attribute_bindings": [
+      {
+        "key": "model",
+        "required": false,
+        "status": "active"
+      },
+      {
+        "key": "pose_type",
+        "required": false,
+        "status": "active"
+      },
+      {
+        "key": "style",
+        "required": false,
+        "status": "active"
+      }
+    ],
+    "aliases": [
+      "인물"
+    ]
+  }
+]

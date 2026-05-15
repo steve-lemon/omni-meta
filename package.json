@@ -1,0 +1,19 @@
+{
+  "name": "omni-meta",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "openai": "^6.4.0"
+  },
+  "scripts": {
+    "validate:valid": "node --experimental-strip-types src/cli.ts examples/valid-taxonomy.json",
+    "validate:invalid": "node --experimental-strip-types src/cli.ts examples/invalid-taxonomy.json",
+    "simulate": "node --experimental-strip-types src/simulation.ts",
+    "build:bundle": "node --experimental-strip-types src/build-bundle.ts examples/domains/index.json examples/fashion.json",
+    "validate:fashion": "node --experimental-strip-types src/cli.ts examples/fashion.json",
+    "mapping:os": "node --experimental-strip-types src/opensearch-mapping.ts examples/fashion.json",
+    "os:plan": "node --experimental-strip-types src/opensearch-index-plan.ts examples/fashion.json fashion-photo",
+    "bundle:cli": "node --experimental-strip-types src/bundle-manager-cli.ts"
+  }
+}

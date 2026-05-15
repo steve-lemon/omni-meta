@@ -1,0 +1,7 @@
+{
+  "base": "examples/domains/base.json",
+  "vocabularies": "examples/domains/vocabularies.json",
+  "attributes": "examples/domains/attributes.json",
+  "categories": "examples/domains/categories.json",
+  "entity_model": "examples/domains/entity-model.json"
+}
